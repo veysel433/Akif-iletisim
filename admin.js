@@ -1,9 +1,10 @@
 /* ================================================================
-   🔥 AKİF İLETİŞİM — admin.js v3
-   ✅ Firebase Storage ile dosya yükleme
-   ✅ Kategoriler Firestore'a kaydedilir → sidebar otomatik güncellenir
-   ✅ Dashboard istatistik widgetları
-   ✅ Yorum onayla + sonradan sil
+   🔥 AKİF İLETİŞİM — admin.js v4
+   ✅ Çoklu görsel (imageUrls dizisi) + sıkıştırma
+   ✅ Telefon görseli sıkıştırma
+   ✅ Admin yorumları silebilir
+   ✅ Siparişler paneli
+   ✅ Dinamik kategori sidebar
    ================================================================ */
 
 const firebaseConfig = {
@@ -24,12 +25,12 @@ const storage = firebase.storage();
 /* ── STATE ── */
 var allProducts   = [];
 var allComments   = [];
-var allCategories = []; // Firestore'dan çekilen kategoriler
+var allCategories = [];
 var commentFilter = 'all';
 var currentPanel  = 'dashboard';
 var confirmCallback = null;
-var activeImgTab  = 'url'; // 'url' | 'file'
-var uploadedImageUrl = ''; // Yüklenen dosyanın Storage URL'i
+var activeImgTab  = 'url';
+var pendingImages  = []; // {url, source:'url'|'file'}
 
 var DEFAULT_CATS = ['Telefon','Tablet','Laptop','Aksesuar','Kulaklık','Saat','Tv & Ses Sistemi','Oyun','Diğer'];
 
@@ -50,10 +51,11 @@ auth.onAuthStateChanged(function(user) {
 });
 
 async function initAdmin() {
-  await loadCategories(); // önce kategorileri çek
+  await loadCategories();
   loadDashboard();
   loadProducts();
   loadComments();
+  loadOrders();
 }
 
 async function adminLogin() {
@@ -75,177 +77,188 @@ function showAuthError(msg) { var box = document.getElementById('auth-error'); d
 async function adminLogout() { await auth.signOut(); showToast('Çıkış yapıldı.','info'); }
 function togglePw() { var inp = document.getElementById('login-password'); var ico = document.getElementById('pw-eye'); if (inp.type==='password'){ inp.type='text'; ico.className='fa-regular fa-eye-slash'; } else { inp.type='password'; ico.className='fa-regular fa-eye'; } }
 
-/* ── KATEGORİ YÖNETİMİ (Firestore tabanlı) ── */
+/* ── KATEGORİ ── */
 async function loadCategories() {
   try {
-    var snap = await db.collection('categories').orderBy('order').get();
-    allCategories = snap.docs.map(function(doc){ return { id:doc.id, name:doc.data().name }; });
-  } catch(e) {
-    // order alanı yoksa sırasız çek
-    try {
-      var snap2 = await db.collection('categories').get();
-      allCategories = snap2.docs.map(function(doc){ return { id:doc.id, name:doc.data().name }; });
-    } catch(e2) { allCategories = []; }
-  }
+    var snap = await db.collection('categories').get();
+    allCategories = snap.docs.map(function(d){ return { id:d.id, name:d.data().name }; });
+  } catch(e) { allCategories = []; }
   buildCategoryOptions();
   updateSidebarCategories();
 }
-
 function allCatNames() {
   var customNames = allCategories.map(function(c){ return c.name; });
   var merged = DEFAULT_CATS.slice();
   customNames.forEach(function(n){ if (!merged.includes(n)) merged.push(n); });
   return merged;
 }
-
 function buildCategoryOptions() {
-  var sel   = document.getElementById('p-category');
-  var fsel  = document.getElementById('cat-filter-select');
+  var sel  = document.getElementById('p-category');
+  var fsel = document.getElementById('cat-filter-select');
   var names = allCatNames();
-
-  var html = '<option value="">Seçiniz…</option>';
+  var html  = '<option value="">Seçiniz…</option>';
   names.forEach(function(c){ html += '<option value="'+escHtml(c)+'">'+escHtml(c)+'</option>'; });
   html += '<option value="__new__">+ Yeni Kategori Ekle…</option>';
   if (sel) sel.innerHTML = html;
-
   if (fsel) {
     var fhtml = '<option value="">Tüm Kategoriler</option>';
     names.forEach(function(c){ fhtml += '<option value="'+escHtml(c)+'">'+escHtml(c)+'</option>'; });
     fsel.innerHTML = fhtml;
   }
 }
-
-/* Sidebar kategori listesini güncelle — admin eklediğinde anında yansır */
 function updateSidebarCategories() {
-  var list  = document.getElementById('nav-cat-list');
-  var names = allCatNames();
-  list.innerHTML = names.map(function(cat){
+  var list = document.getElementById('nav-cat-list');
+  if (!list) return;
+  list.innerHTML = allCatNames().map(function(cat){
     return '<div class="nav-cat-item" onclick="switchPanel(\'products\',document.querySelector(\'[data-panel=products]\'));filterByCategory2(\''+escJs(cat)+'\')">'+escHtml(cat)+'</div>';
   }).join('');
 }
-
 function onCategoryChange(val) {
   if (val === '__new__') {
     document.getElementById('new-cat-wrap').classList.add('visible');
     document.getElementById('p-category').value = '';
     document.getElementById('new-cat-input').focus();
-  } else {
-    document.getElementById('new-cat-wrap').classList.remove('visible');
-  }
+  } else { document.getElementById('new-cat-wrap').classList.remove('visible'); }
 }
-
 async function addCustomCategory() {
   var name = document.getElementById('new-cat-input').value.trim();
   if (!name) return;
-  if (allCatNames().map(function(c){ return c.toLowerCase(); }).includes(name.toLowerCase())) {
-    showToast('Bu kategori zaten mevcut.','error'); return;
-  }
+  if (allCatNames().map(function(c){ return c.toLowerCase(); }).includes(name.toLowerCase())) { showToast('Bu kategori zaten mevcut.','error'); return; }
   try {
-    // Firestore'a kaydet — hem admin hem index.html okuyabilir
-    var ref = await db.collection('categories').add({ name:name, order: allCategories.length + DEFAULT_CATS.length, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-    allCategories.push({ id: ref.id, name: name });
-    buildCategoryOptions();
-    updateSidebarCategories(); // sidebar anında güncellenir
+    var ref = await db.collection('categories').add({ name:name, createdAt:firebase.firestore.FieldValue.serverTimestamp() });
+    allCategories.push({ id:ref.id, name:name });
+    buildCategoryOptions(); updateSidebarCategories();
     document.getElementById('p-category').value = name;
     document.getElementById('new-cat-wrap').classList.remove('visible');
     document.getElementById('new-cat-input').value = '';
-    showToast('"'+name+'" kategorisi eklendi ve sidebar güncellendi.','success');
-  } catch(err) {
-    showToast('Kategori kaydedilemedi: '+err.message,'error');
-  }
+    showToast('"'+name+'" kategorisi eklendi.','success');
+  } catch(err){ showToast('Kategori kaydedilemedi: '+err.message,'error'); }
 }
+function cancelNewCategory() { document.getElementById('new-cat-wrap').classList.remove('visible'); document.getElementById('p-category').value=''; document.getElementById('new-cat-input').value=''; }
 
-function cancelNewCategory() {
-  document.getElementById('new-cat-wrap').classList.remove('visible');
-  document.getElementById('new-cat-input').value = '';
-  document.getElementById('p-category').value = '';
-}
-
-/* ── GÖRSEL YÜKLEME ── */
+/* ── GÖRSEL YÜKLEME — Sıkıştırma ile ── */
 function switchImgTab(tab, el) {
   activeImgTab = tab;
   document.querySelectorAll('.img-tab').forEach(function(b){ b.classList.remove('active'); });
-  el.classList.add('active');
+  if (el) el.classList.add('active');
   document.querySelectorAll('.img-tab-content').forEach(function(c){ c.classList.remove('active'); });
   document.getElementById('tab-'+tab).classList.add('active');
-  /* URL tab'ına dönünce dosya URL'ini temizle */
-  if (tab === 'url') { uploadedImageUrl = ''; document.getElementById('p-img-final').value = ''; }
 }
 
-function previewImageFromUrl(url) {
-  document.getElementById('p-img-final').value = url;
-  previewImage(url);
+/* Canvas ile görsel sıkıştırma — telefondan gelen büyük görselleri küçültür */
+function compressImage(file, maxWidth, quality) {
+  maxWidth = maxWidth || 1200;
+  quality  = quality  || 0.82;
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var canvas = document.createElement('canvas');
+        var ratio  = Math.min(maxWidth / img.width, 1); // küçültme oranı
+        canvas.width  = Math.round(img.width  * ratio);
+        canvas.height = Math.round(img.height * ratio);
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(function(blob) {
+          if (!blob) { reject(new Error('Sıkıştırma başarısız')); return; }
+          resolve(blob);
+        }, 'image/jpeg', quality);
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
-function previewImage(url) {
-  var img = document.getElementById('img-preview-img');
-  var ph  = document.getElementById('img-preview').querySelector('.placeholder');
-  if (!url) { img.style.display='none'; ph.style.display='flex'; return; }
-  img.onload  = function(){ img.style.display='block'; ph.style.display='none'; };
-  img.onerror = function(){ img.style.display='none';  ph.style.display='flex'; };
-  img.src = url;
-}
-
-/* Dosya seçme / sürükleme */
-function handleFileSelect(file) {
-  if (!file) return;
-  if (file.size > 5 * 1024 * 1024) { showToast('Dosya 5MB\'dan büyük olamaz.','error'); return; }
-  uploadFile(file);
-}
-
-function handleDragOver(e) { e.preventDefault(); document.getElementById('file-drop-zone').classList.add('drag-over'); }
-function handleDragLeave(e) { document.getElementById('file-drop-zone').classList.remove('drag-over'); }
+function handleDragOver(e)  { e.preventDefault(); document.getElementById('file-drop-zone').classList.add('drag-over'); }
+function handleDragLeave()  { document.getElementById('file-drop-zone').classList.remove('drag-over'); }
 function handleDrop(e) {
   e.preventDefault();
   document.getElementById('file-drop-zone').classList.remove('drag-over');
-  var file = e.dataTransfer.files[0];
-  if (file && file.type.startsWith('image/')) uploadFile(file);
-  else showToast('Lütfen bir görsel dosyası seçin.','error');
+  var files = Array.from(e.dataTransfer.files).filter(function(f){ return f.type.startsWith('image/'); });
+  if (files.length) uploadFiles(files);
+  else showToast('Lütfen görsel dosyası seçin.','error');
+}
+function handleFileSelect(files) {
+  if (!files || !files.length) return;
+  uploadFiles(Array.from(files));
 }
 
-async function uploadFile(file) {
-  var progressWrap = document.getElementById('upload-progress');
-  var progressBar  = document.getElementById('progress-bar-fill');
-  var progressLbl  = document.getElementById('progress-label');
-
-  progressWrap.style.display = 'block';
-  progressBar.style.width    = '0%';
-  progressLbl.textContent    = 'Yükleniyor…';
-
-  try {
-    var fileName = 'products/' + Date.now() + '_' + file.name.replace(/[^a-z0-9.]/gi,'_');
-    var ref = storage.ref().child(fileName);
-    var uploadTask = ref.put(file);
-
-    uploadTask.on('state_changed',
-      function(snapshot) {
-        var pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-        progressBar.style.width = pct + '%';
-        progressLbl.textContent = pct + '% yüklendi…';
-      },
-      function(err) {
-        progressWrap.style.display = 'none';
-        showToast('Yükleme hatası: ' + err.message, 'error');
-      },
-      async function() {
-        var url = await uploadTask.snapshot.ref.getDownloadURL();
-        uploadedImageUrl = url;
-        document.getElementById('p-img-final').value = url;
-        progressBar.style.width = '100%';
-        progressLbl.textContent = '✓ Yükleme tamamlandı';
-        previewImage(url);
-        setTimeout(function(){ progressWrap.style.display='none'; }, 1500);
-        showToast('Görsel başarıyla yüklendi.','success');
-      }
-    );
-  } catch(err) {
-    progressWrap.style.display = 'none';
-    showToast('Yükleme başarısız: ' + err.message,'error');
+async function uploadFiles(files) {
+  if (files.length + pendingImages.length > 8) {
+    showToast('En fazla 8 görsel ekleyebilirsiniz.','error'); return;
   }
+  var progress = document.getElementById('upload-progress');
+  var bar      = document.getElementById('progress-bar-fill');
+  var lbl      = document.getElementById('progress-label');
+  progress.style.display = 'block';
+
+  for (var i=0; i<files.length; i++) {
+    var file = files[i];
+    if (file.size > 20 * 1024 * 1024) { showToast(file.name + ' 20MB\'dan büyük, atlandı.','error'); continue; }
+    try {
+      lbl.textContent = (i+1)+'/'+files.length+' sıkıştırılıyor…';
+      bar.style.width = '20%';
+      var compressed = await compressImage(file, 1200, 0.82);
+      lbl.textContent = (i+1)+'/'+files.length+' yükleniyor…';
+      var fileName = 'products/' + Date.now() + '_' + i + '.jpg';
+      var ref      = storage.ref().child(fileName);
+      var task     = ref.put(compressed, { contentType:'image/jpeg' });
+      await new Promise(function(resolve, reject) {
+        task.on('state_changed',
+          function(snap){ bar.style.width = Math.round(20 + (snap.bytesTransferred/snap.totalBytes)*70)+'%'; },
+          reject,
+          async function(){ resolve(); }
+        );
+      });
+      var url = await task.snapshot.ref.getDownloadURL();
+      pendingImages.push({ url:url, source:'file' });
+      bar.style.width = '100%';
+    } catch(err) {
+      showToast('Yükleme hatası: '+err.message,'error');
+    }
+  }
+
+  lbl.textContent = '✓ '+pendingImages.length+' görsel hazır';
+  setTimeout(function(){ progress.style.display='none'; }, 2000);
+  renderImagePreviews();
+}
+
+function addUrlImage() {
+  var input = document.getElementById('p-img-url-single');
+  var url   = (input.value||'').trim();
+  if (!url) return;
+  if (pendingImages.length >= 8) { showToast('En fazla 8 görsel ekleyebilirsiniz.','error'); return; }
+  pendingImages.push({ url:url, source:'url' });
+  input.value = '';
+  renderImagePreviews();
+}
+
+function removeImage(idx) {
+  pendingImages.splice(idx, 1);
+  renderImagePreviews();
+}
+
+function renderImagePreviews() {
+  var container = document.getElementById('img-preview-grid');
+  if (!pendingImages.length) {
+    container.innerHTML = '<div class="img-placeholder"><i class="fa-regular fa-image"></i><span>Görsel yok</span></div>';
+    return;
+  }
+  container.innerHTML = pendingImages.map(function(img, i){
+    return '<div class="img-thumb-wrap">' +
+      '<img class="img-thumb" src="'+escHtml(img.url)+'" alt="" onerror="this.style.background=\'var(--surface-3)\'" />' +
+      '<button type="button" class="img-thumb-remove" onclick="removeImage('+i+')" title="Kaldır"><i class="fa-solid fa-xmark"></i></button>' +
+      (i===0 ? '<span class="img-thumb-badge">Ana</span>' : '') +
+    '</div>';
+  }).join('');
 }
 
 /* ── NAVİGASYON ── */
-var PANEL_TITLES = { 'dashboard':['Genel Bakış','Dashboard'],'add-product':['Ürün Ekle','Katalog'],'products':['Ürün Listesi','Katalog'],'comments':['Yorum Moderasyonu','Topluluk'] };
+var PANEL_TITLES = { 'dashboard':['Genel Bakış','Dashboard'],'add-product':['Ürün Ekle','Katalog'],'products':['Ürün Listesi','Katalog'],'comments':['Yorumlar','Topluluk'],'orders':['Siparişler','Satış'] };
 function switchPanel(id, navEl) {
   document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
   document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
@@ -262,10 +275,11 @@ function refreshCurrentPanel() {
   if (currentPanel==='dashboard'){ loadDashboard(); loadProducts(); }
   if (currentPanel==='products')  loadProducts();
   if (currentPanel==='comments')  loadComments();
+  if (currentPanel==='orders')    loadOrders();
   showToast('Yenilendi.','info');
 }
 
-/* ── ÜRÜN FORMU ── */
+/* ── FORM ── */
 function setStock(val,el) {
   document.querySelectorAll('#stock-toggle .toggle-option').forEach(function(b){ b.classList.remove('active-green','active-red'); });
   el.classList.add(val==='instock'?'active-green':'active-red');
@@ -276,20 +290,17 @@ function updateDiscountBadge() {
   var salePrice = parseFloat(document.getElementById('p-sale-price').value)||0;
   var preview   = document.getElementById('discount-preview');
   if (salePrice>0&&price>0&&salePrice<price) {
-    document.getElementById('preview-sale-price').textContent = formatPrice(salePrice);
-    document.getElementById('preview-old-price').textContent  = formatPrice(price);
+    document.getElementById('preview-sale-price').textContent = fmt(salePrice);
+    document.getElementById('preview-old-price').textContent  = fmt(price);
     document.getElementById('preview-pct').textContent        = '%'+Math.round((1-salePrice/price)*100)+' İndirim';
     preview.style.display='flex';
   } else { preview.style.display='none'; }
 }
+
 function resetProductForm() {
   document.getElementById('product-form').reset();
-  document.getElementById('p-edit-id').value  = '';
-  document.getElementById('p-stock').value    = 'instock';
-  document.getElementById('p-img-final').value= '';
-  uploadedImageUrl = '';
-  document.getElementById('img-preview-img').style.display = 'none';
-  document.getElementById('img-preview').querySelector('.placeholder').style.display = 'flex';
+  document.getElementById('p-edit-id').value = '';
+  document.getElementById('p-stock').value   = 'instock';
   document.getElementById('discount-preview').style.display  = 'none';
   document.getElementById('form-panel-title').textContent    = 'Yeni Ürün Ekle';
   document.getElementById('submit-btn-label').innerHTML      = '<i class="fa-solid fa-cloud-arrow-up"></i> Kaydet';
@@ -297,6 +308,8 @@ function resetProductForm() {
   document.getElementById('upload-progress').style.display   = 'none';
   document.querySelectorAll('#stock-toggle .toggle-option').forEach(function(b){ b.classList.remove('active-green','active-red'); });
   document.querySelector('[data-value="instock"]').classList.add('active-green');
+  pendingImages = [];
+  renderImagePreviews();
 }
 
 async function handleProductSubmit(e) {
@@ -308,17 +321,25 @@ async function handleProductSubmit(e) {
   var salePrice = parseFloat(document.getElementById('p-sale-price').value)||0;
   var stock     = document.getElementById('p-stock').value;
   var desc      = document.getElementById('p-desc').value.trim();
-  /* Görsel: URL tab veya yüklenen dosya */
-  var imgUrl = activeImgTab==='url'
-    ? (document.getElementById('p-img').value||'').trim()
-    : document.getElementById('p-img-final').value;
 
-  if (!name||!category||price<=0||!desc||!imgUrl){ showToast('Lütfen zorunlu alanları doldurun.','error'); return; }
-  if (salePrice>0&&salePrice>=price){ showToast('İndirimli fiyat, normal fiyattan küçük olmalı.','error'); return; }
+  if (!name||!category||price<=0||!desc) { showToast('Lütfen zorunlu alanları doldurun.','error'); return; }
+  if (!pendingImages.length) { showToast('En az 1 görsel eklemelisiniz.','error'); return; }
+  if (salePrice>0&&salePrice>=price) { showToast('İndirimli fiyat, normal fiyattan küçük olmalı.','error'); return; }
 
   var btn = document.getElementById('submit-product-btn');
   btn.classList.add('loading');
-  var data = { name,category,price, salePrice:salePrice>0?salePrice:null, discountPct:(salePrice>0&&price>0)?Math.round((1-salePrice/price)*100):null, stock, description:desc, imageUrl:imgUrl, updatedAt:firebase.firestore.FieldValue.serverTimestamp() };
+
+  var imageUrls = pendingImages.map(function(img){ return img.url; });
+  var data = {
+    name, category, price,
+    salePrice:   salePrice>0 ? salePrice : null,
+    discountPct: (salePrice>0&&price>0) ? Math.round((1-salePrice/price)*100) : null,
+    stock, description:desc,
+    imageUrls:   imageUrls,         // dizi
+    imageUrl:    imageUrls[0]||'',  // geriye dönük uyumluluk
+    updatedAt:   firebase.firestore.FieldValue.serverTimestamp(),
+  };
+
   try {
     if (editId) {
       await db.collection('products').doc(editId).update(data);
@@ -329,8 +350,7 @@ async function handleProductSubmit(e) {
       showToast('"'+name+'" eklendi.','success');
     }
     resetProductForm();
-    await loadProducts();
-    await loadDashboard();
+    await loadProducts(); await loadDashboard();
     switchPanel('products',document.querySelector('[data-panel=products]'));
   } catch(err) {
     showToast('Hata: '+err.message,'error');
@@ -346,22 +366,18 @@ function editProduct(id) {
   document.getElementById('p-price').value      = d.price||'';
   document.getElementById('p-sale-price').value = d.salePrice||'';
   document.getElementById('p-desc').value       = d.description||'';
-  document.getElementById('p-img').value        = d.imageUrl||'';
-  document.getElementById('p-img-final').value  = d.imageUrl||'';
   document.getElementById('form-panel-title').textContent = 'Ürün Düzenle';
-  document.getElementById('submit-btn-label').innerHTML   = '<i class="fa-solid fa-floppy-disk"></i> Değişiklikleri Kaydet';
-  if (d.category && !allCatNames().includes(d.category)) {
-    allCategories.push({ id:'local_'+Date.now(), name:d.category });
-    buildCategoryOptions(); updateSidebarCategories();
-  }
+  document.getElementById('submit-btn-label').innerHTML   = '<i class="fa-solid fa-floppy-disk"></i> Güncelle';
+  if (d.category && !allCatNames().includes(d.category)) { allCategories.push({ id:'local', name:d.category }); buildCategoryOptions(); updateSidebarCategories(); }
   document.getElementById('p-category').value = d.category||'';
   var sv = d.stock||'instock';
   var sb = document.querySelector('[data-value="'+sv+'"]');
   if (sb) setStock(sv,sb);
-  previewImage(d.imageUrl||'');
   updateDiscountBadge();
-  /* URL tab'a geç */
-  switchImgTab('url', document.querySelector('.img-tab'));
+  // Görselleri yükle
+  var imgs = Array.isArray(d.imageUrls)&&d.imageUrls.length>0 ? d.imageUrls : (d.imageUrl ? [d.imageUrl] : []);
+  pendingImages = imgs.map(function(url){ return { url:url, source:'url' }; });
+  renderImagePreviews();
   switchPanel('add-product',document.querySelector('[data-panel=add-product]'));
 }
 
@@ -387,17 +403,19 @@ async function loadProducts() {
 
 function renderProductsTable(products) {
   var tbody = document.getElementById('products-body');
-  if (!products.length){ tbody.innerHTML='<tr><td colspan="6" style="padding:48px;text-align:center;color:var(--text-3);"><i class="fa-solid fa-box-open" style="font-size:28px;margin-bottom:10px;display:block;"></i>Ürün bulunamadı.</td></tr>'; return; }
-  tbody.innerHTML=products.map(function(item){
-    var id=item.id,d=item.data;
-    var fallback="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22><rect width=%2244%22 height=%2244%22 fill=%22%2221252b%22/></svg>'";
-    var saleBadge=d.salePrice?'<span style="color:var(--gold);font-weight:700;">'+formatPrice(d.salePrice)+'</span><span class="badge badge-gold" style="margin-left:4px;">%'+(d.discountPct||0)+'</span>':'<span style="color:var(--text-3);">—</span>';
-    var stockBadge=d.stock==='instock'?'<span class="badge badge-green"><i class="fa-solid fa-circle-dot"></i> Stokta</span>':'<span class="badge badge-red"><i class="fa-solid fa-ban"></i> Tükendi</span>';
-    var sn=escHtml(d.name||'').replace(/'/g,"\\'");
-    return '<tr><td><div class="product-name-cell"><img class="product-thumb" src="'+escHtml(d.imageUrl||'')+'" alt="" onerror="'+fallback+'" /><div><div class="name">'+escHtml(d.name)+'</div><div class="cat">'+escHtml(d.category||'—')+'</div></div></div></td>'+
+  if (!products.length){ tbody.innerHTML='<tr><td colspan="6" style="padding:48px;text-align:center;color:var(--text-3);"><i class="fa-solid fa-box-open" style="font-size:28px;display:block;margin-bottom:10px;"></i>Ürün bulunamadı.</td></tr>'; return; }
+  tbody.innerHTML = products.map(function(item){
+    var id=item.id, d=item.data;
+    var imgs = Array.isArray(d.imageUrls)&&d.imageUrls.length>0 ? d.imageUrls : (d.imageUrl?[d.imageUrl]:[]);
+    var thumbSrc = imgs[0]||'';
+    var imgCount = imgs.length > 1 ? '<span class="badge badge-gold" style="margin-left:4px;">'+imgs.length+' foto</span>' : '';
+    var fallback = "this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22><rect width=%2244%22 height=%2244%22 fill=%22%2221252b%22/></svg>'";
+    var saleBadge = d.salePrice?'<span style="color:var(--gold);font-weight:700;">'+fmt(d.salePrice)+'</span><span class="badge badge-gold" style="margin-left:4px;">%'+(d.discountPct||0)+'</span>':'<span style="color:var(--text-3);">—</span>';
+    var stockBadge = d.stock==='instock'?'<span class="badge badge-green"><i class="fa-solid fa-circle-dot"></i> Stokta</span>':'<span class="badge badge-red"><i class="fa-solid fa-ban"></i> Tükendi</span>';
+    var sn = escHtml(d.name||'').replace(/'/g,"\\'");
+    return '<tr><td><div class="product-name-cell"><img class="product-thumb" src="'+thumbSrc+'" alt="" onerror="'+fallback+'" /><div><div class="name">'+escHtml(d.name)+imgCount+'</div><div class="cat">'+escHtml(d.category||'—')+'</div></div></div></td>'+
       '<td><span class="badge badge-gold">'+escHtml(d.category||'—')+'</span></td>'+
-      '<td style="font-weight:600;">'+formatPrice(d.price)+'</td>'+
-      '<td>'+saleBadge+'</td><td>'+stockBadge+'</td>'+
+      '<td style="font-weight:600;">'+fmt(d.price)+'</td><td>'+saleBadge+'</td><td>'+stockBadge+'</td>'+
       '<td><div class="td-actions" style="justify-content:flex-end;">'+
         '<button class="btn btn-ghost btn-xs" onclick="editProduct(\''+id+'\')" title="Düzenle"><i class="fa-solid fa-pen"></i></button>'+
         '<button class="btn btn-danger btn-xs" onclick="deleteProduct(\''+id+'\',\''+sn+'\')" title="Sil"><i class="fa-solid fa-trash"></i></button>'+
@@ -406,48 +424,49 @@ function renderProductsTable(products) {
 }
 
 function renderRecentProducts(products) {
-  var tbody=document.getElementById('recent-products-body');
-  if (!products.length){ tbody.innerHTML='<tr><td colspan="5" style="padding:32px;text-align:center;color:var(--text-3);">Ürün yok.</td></tr>'; return; }
-  tbody.innerHTML=products.map(function(item){
+  var tbody = document.getElementById('recent-products-body');
+  if (!products.length){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-3);">Ürün yok.</td></tr>'; return; }
+  tbody.innerHTML = products.map(function(item){
     var id=item.id,d=item.data;
+    var imgs = Array.isArray(d.imageUrls)&&d.imageUrls.length>0 ? d.imageUrls : (d.imageUrl?[d.imageUrl]:[]);
     var sb=d.stock==='instock'?'<span class="badge badge-green">Stokta</span>':'<span class="badge badge-red">Tükendi</span>';
-    return '<tr><td><div class="product-name-cell"><img class="product-thumb" src="'+escHtml(d.imageUrl||'')+'" alt="" onerror="this.style.display=\'none\'" /><span class="name">'+escHtml(d.name)+'</span></div></td>'+
+    return '<tr><td><div class="product-name-cell"><img class="product-thumb" src="'+(imgs[0]||'')+'" alt="" onerror="this.style.display=\'none\'" /><span class="name">'+escHtml(d.name)+'</span></div></td>'+
       '<td><span class="badge badge-gold">'+escHtml(d.category||'—')+'</span></td>'+
-      '<td style="font-weight:600;">'+formatPrice(d.price)+'</td>'+
-      '<td>'+sb+'</td>'+
+      '<td style="font-weight:600;">'+fmt(d.price)+'</td><td>'+sb+'</td>'+
       '<td><button class="btn btn-ghost btn-xs" onclick="editProduct(\''+id+'\')"><i class="fa-solid fa-pen"></i> Düzenle</button></td></tr>';
   }).join('');
 }
-function filterProducts(q){ q=q.toLowerCase(); renderProductsTable(allProducts.filter(function(item){ var d=item.data; return (d.name||'').toLowerCase().includes(q)||(d.category||'').toLowerCase().includes(q)||(d.description||'').toLowerCase().includes(q); })); }
+
+function filterProducts(q){ q=q.toLowerCase(); renderProductsTable(allProducts.filter(function(item){ var d=item.data; return (d.name||'').toLowerCase().includes(q)||(d.category||'').toLowerCase().includes(q); })); }
 function filterByCategory2(cat){ renderProductsTable(cat?allProducts.filter(function(item){return item.data.category===cat;}):allProducts); }
 
-/* ── YORUMLAR ── */
+/* ── YORUMLAR ──
+   Google ile giriş yapan kullanıcılar direkt yayınlar (approved)
+   Admin istediği yorumu silebilir (pending veya approved) */
 async function loadComments() {
   try {
-    var snap=await db.collection('comments').orderBy('createdAt','desc').get();
-    allComments=snap.docs.map(function(doc){return {id:doc.id,data:doc.data()};});
-    var pending =allComments.filter(function(c){return c.data.status==='pending';}).length;
-    var approved=allComments.filter(function(c){return c.data.status==='approved';}).length;
-    document.getElementById('nav-comment-count').textContent=allComments.length;
-    document.getElementById('stat-pending').textContent=pending;
-    document.getElementById('stat-approved').textContent=approved;
-    renderComments(allComments,commentFilter);
+    var snap = await db.collection('comments').orderBy('createdAt','desc').get();
+    allComments = snap.docs.map(function(doc){ return {id:doc.id,data:doc.data()}; });
+    var pending  = allComments.filter(function(c){ return c.data.status==='pending'; }).length;
+    var approved = allComments.filter(function(c){ return c.data.status==='approved'; }).length;
+    document.getElementById('nav-comment-count').textContent = allComments.length;
+    document.getElementById('stat-pending').textContent  = pending;
+    document.getElementById('stat-approved').textContent = approved;
+    renderComments(allComments, commentFilter);
   } catch(err) {
-    document.getElementById('comment-list').innerHTML='<div style="text-align:center;padding:32px;color:var(--red);">Hata: '+escHtml(err.message)+'</div>';
+    document.getElementById('comment-list').innerHTML = '<div style="padding:32px;text-align:center;color:var(--red);">Hata: '+escHtml(err.message)+'</div>';
   }
 }
 
-function renderComments(comments,filter) {
-  filter=filter||'all';
-  var list=document.getElementById('comment-list');
-  var filtered=filter==='all'?comments:comments.filter(function(c){return c.data.status===filter;});
+function renderComments(comments, filter) {
+  filter = filter||'all';
+  var list = document.getElementById('comment-list');
+  var filtered = filter==='all' ? comments : comments.filter(function(c){ return c.data.status===filter; });
   if (!filtered.length) {
-    var msg=filter==='pending'?'Bekleyen yorum yok.':filter==='approved'?'Onaylı yorum yok.':'Henüz yorum yok.';
-    list.innerHTML='<div style="text-align:center;padding:48px;color:var(--text-3);"><i class="fa-solid fa-comment-slash" style="font-size:28px;margin-bottom:12px;display:block;"></i>'+msg+'</div>';
-    return;
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-3);">Yorum yok.</div>'; return;
   }
-  list.innerHTML=filtered.map(function(item,i){
-    var id=item.id,c=item.data;
+  list.innerHTML = filtered.map(function(item,i){
+    var id=item.id, c=item.data;
     var initials=(c.author||'K').slice(0,2).toUpperCase();
     var stars=''; for(var j=0;j<5;j++) stars+='<i class="fa-'+(j<(c.rating||5)?'solid':'regular')+' fa-star"></i>';
     var dateStr=c.createdAt&&c.createdAt.toDate?c.createdAt.toDate().toLocaleDateString('tr-TR'):'—';
@@ -455,59 +474,122 @@ function renderComments(comments,filter) {
     var sn=escHtml(c.author||'Anonim').replace(/'/g,"\\'");
     var prodHtml=c.productName?'<span class="comment-product"><i class="fa-solid fa-box" style="margin-right:4px;font-size:10px;"></i>'+escHtml(c.productName)+'</span>':'';
     var titleHtml=c.title?'<div style="font-size:13px;font-weight:600;margin-bottom:4px;">&ldquo;'+escHtml(c.title)+'&rdquo;</div>':'';
-
-    /* Onayla butonu (sadece pending için) + Her durumda Sil butonu */
-    var actionBtns = '';
-    if (!isApproved) {
-      actionBtns += '<button class="btn btn-success btn-xs" onclick="approveComment(\''+id+'\')"><i class="fa-solid fa-check"></i> Onayla</button>';
-    } else {
-      actionBtns += '<span class="badge badge-green"><i class="fa-solid fa-circle-check"></i> Yayında</span>';
-    }
-    actionBtns += '<button class="btn btn-danger btn-xs" onclick="deleteComment(\''+id+'\',\''+sn+'\')"><i class="fa-solid fa-trash"></i> Sil</button>';
-
+    /* Onayla butonu sadece pending için, SİL butonu her durumda */
+    var approveBtn = !isApproved ? '<button class="btn btn-success btn-xs" onclick="approveComment(\''+id+'\')"><i class="fa-solid fa-check"></i> Onayla</button>' : '<span class="badge badge-green"><i class="fa-solid fa-circle-check"></i> Yayında</span>';
     return '<div class="comment-card '+(isApproved?'approved':'pending')+'" style="animation-delay:'+(i*50)+'ms">'+
       '<div class="comment-avatar">'+initials+'</div>'+
       '<div class="comment-body">'+
         '<div class="comment-header"><span class="comment-author">'+escHtml(c.author||'Anonim')+'</span><div class="comment-stars">'+stars+'</div>'+prodHtml+'<span class="comment-date">'+dateStr+'</span></div>'+
         titleHtml+'<p class="comment-text">'+escHtml(c.text||'')+'</p>'+
-        '<div class="comment-actions">'+actionBtns+'</div>'+
-      '</div>'+
-    '</div>';
+        '<div class="comment-actions">'+approveBtn+
+          '<button class="btn btn-danger btn-xs" onclick="deleteComment(\''+id+'\',\''+sn+'\')"><i class="fa-solid fa-trash"></i> Sil</button>'+
+        '</div>'+
+      '</div></div>';
   }).join('');
 }
 
 async function approveComment(id) {
-  try {
-    await db.collection('comments').doc(id).update({ status:'approved' });
-    showToast('Yorum onaylandı — artık ürün sayfasında görünür.','success');
-    await loadComments();
-  } catch(err){ showToast('Hata: '+err.message,'error'); }
+  try { await db.collection('comments').doc(id).update({status:'approved'}); showToast('Yorum onaylandı.','success'); await loadComments(); }
+  catch(err){ showToast('Hata: '+err.message,'error'); }
 }
 
-/* ✅ Onaylı yorumlar da silinebilir */
-function deleteComment(id,author) {
-  openConfirm('"'+author+'" yorumu silinsin mi?','Bu yorum kalıcı olarak silinecek.',async function(){
+/* Admin her yorumu silebilir */
+function deleteComment(id, author) {
+  openConfirm('"'+author+'" yorumu silinsin mi?','Bu işlem geri alınamaz.',async function(){
     try { await db.collection('comments').doc(id).delete(); showToast('Yorum silindi.','success'); await loadComments(); }
     catch(err){ showToast('Hata: '+err.message,'error'); }
   });
 }
 
-function filterComments(filter,btn) {
-  commentFilter=filter;
-  document.querySelectorAll('#panel-comments .toolbar .btn').forEach(function(b){ b.style.borderColor='var(--border)'; b.style.color='var(--text-2)'; b.style.background='var(--surface-2)'; });
-  if(btn){ btn.style.borderColor='var(--gold-border)'; btn.style.color='var(--gold)'; btn.style.background='var(--gold-dim)'; }
-  renderComments(allComments,filter);
+function filterComments(filter, btn) {
+  commentFilter = filter;
+  document.querySelectorAll('#panel-comments .toolbar .btn').forEach(function(b){ b.style.borderColor='var(--border)';b.style.color='var(--text-2)';b.style.background='var(--surface-2)'; });
+  if(btn){ btn.style.borderColor='var(--gold-border)';btn.style.color='var(--gold)';btn.style.background='var(--gold-dim)'; }
+  renderComments(allComments, filter);
+}
+
+/* ── SİPARİŞLER ── */
+var allOrders = [];
+async function loadOrders() {
+  try {
+    var snap = await db.collection('orders').orderBy('createdAt','desc').get();
+    allOrders = snap.docs.map(function(doc){ return {id:doc.id,data:doc.data()}; });
+    renderOrdersTable(allOrders);
+    document.getElementById('nav-order-count').textContent = allOrders.filter(function(o){ return o.data.status==='pending'; }).length;
+    document.getElementById('stat-orders').textContent     = allOrders.length;
+  } catch(err) {
+    var body = document.getElementById('orders-body');
+    if (body) body.innerHTML = '<tr><td colspan="6" style="padding:32px;text-align:center;color:var(--red);">Hata: '+escHtml(err.message)+'</td></tr>';
+  }
+}
+
+function renderOrdersTable(orders) {
+  var tbody = document.getElementById('orders-body');
+  if (!tbody) return;
+  if (!orders.length){ tbody.innerHTML='<tr><td colspan="6" style="padding:40px;text-align:center;color:var(--text-3);">Sipariş yok.</td></tr>'; return; }
+  var statusLabels = { pending:'<span class="badge badge-amber">Bekliyor</span>', processing:'<span class="badge badge-gold">Hazırlanıyor</span>', shipped:'<span class="badge badge-green">Kargoda</span>', completed:'<span class="badge badge-green">Tamamlandı</span>', cancelled:'<span class="badge badge-red">İptal</span>' };
+  var paymentLabels = { kapida_nakit:'Kapıda Nakit', kapida_kart:'Kapıda Kart', havale:'Havale' };
+  tbody.innerHTML = orders.map(function(item){
+    var id=item.id, d=item.data;
+    var dateStr = d.createdAt&&d.createdAt.toDate ? d.createdAt.toDate().toLocaleDateString('tr-TR') : '—';
+    var statusHtml = statusLabels[d.status||'pending'] || '<span class="badge badge-amber">Bekliyor</span>';
+    var itemCount  = Array.isArray(d.items) ? d.items.reduce(function(s,i){ return s+(i.qty||1); },0) : '—';
+    return '<tr>'+
+      '<td style="font-size:11px;font-weight:600;font-family:monospace;">#'+id.slice(-8).toUpperCase()+'</td>'+
+      '<td><div style="font-weight:600;">'+escHtml((d.customer&&d.customer.name)||'—')+'</div><div style="font-size:11px;color:var(--text-2);">'+escHtml((d.customer&&d.customer.phone)||'')+'</div></td>'+
+      '<td>'+itemCount+' ürün</td>'+
+      '<td style="font-weight:700;color:var(--gold);">'+fmt(d.total)+'</td>'+
+      '<td>'+escHtml(paymentLabels[d.payment]||d.payment||'—')+'</td>'+
+      '<td>'+statusHtml+'</td>'+
+      '<td><div class="td-actions" style="justify-content:flex-end;">'+
+        '<button class="btn btn-ghost btn-xs" onclick="showOrderDetail(\''+id+'\')"><i class="fa-solid fa-eye"></i></button>'+
+        '<div class="select-wrap" style="min-width:110px;">'+
+          '<select class="form-select" style="padding:5px 28px 5px 8px;font-size:11px;" onchange="updateOrderStatus(\''+id+'\',this.value)">'+
+            '<option value="pending" '+(d.status==='pending'?'selected':'')+'>Bekliyor</option>'+
+            '<option value="processing" '+(d.status==='processing'?'selected':'')+'>Hazırlanıyor</option>'+
+            '<option value="shipped" '+(d.status==='shipped'?'selected':'')+'>Kargoda</option>'+
+            '<option value="completed" '+(d.status==='completed'?'selected':'')+'>Tamamlandı</option>'+
+            '<option value="cancelled" '+(d.status==='cancelled'?'selected':'')+'>İptal</option>'+
+          '</select>'+
+        '</div>'+
+      '</div></td>'+
+    '</tr>';
+  }).join('');
+}
+
+async function updateOrderStatus(id, status) {
+  try {
+    await db.collection('orders').doc(id).update({ status:status });
+    showToast('Sipariş durumu güncellendi.','success');
+    await loadOrders();
+  } catch(err){ showToast('Hata: '+err.message,'error'); }
+}
+
+function showOrderDetail(id) {
+  var order = allOrders.find(function(o){ return o.id===id; });
+  if (!order) return;
+  var d = order.data;
+  var items = Array.isArray(d.items) ? d.items.map(function(item){ return '• '+item.name+' × '+item.qty+' = '+fmt(item.price*item.qty); }).join('\n') : '—';
+  openConfirm(
+    'Sipariş #'+id.slice(-8).toUpperCase(),
+    'Müşteri: '+(d.customer&&d.customer.name||'—')+'\nTel: '+(d.customer&&d.customer.phone||'—')+'\nAdres: '+(d.customer&&d.customer.address||'—')+'\n\n'+items+'\n\nToplam: '+fmt(d.total),
+    function(){}
+  );
+  document.getElementById('confirm-ok-btn').textContent = 'Tamam';
+  document.getElementById('confirm-icon').querySelector('i').className = 'fa-solid fa-receipt';
 }
 
 /* ── DASHBOARD ── */
 async function loadDashboard() {
-  document.getElementById('stat-products').textContent = allProducts.length || '—';
-  document.getElementById('stat-sale').textContent = allProducts.filter(function(p){return p.data.salePrice;}).length || '0';
+  document.getElementById('stat-products').textContent = allProducts.length||'0';
+  document.getElementById('stat-sale').textContent     = allProducts.filter(function(p){ return p.data.salePrice; }).length||'0';
+  document.getElementById('stat-orders').textContent   = allOrders.length||'0';
 }
 
 /* ── CONFIRM ── */
 function openConfirm(title,desc,onConfirm) {
   document.getElementById('confirm-title').textContent=title;
+  document.getElementById('confirm-desc').style.whiteSpace='pre-line';
   document.getElementById('confirm-desc').textContent=desc;
   document.getElementById('confirm-overlay').classList.add('open');
   confirmCallback=onConfirm;
@@ -525,10 +607,10 @@ function showToast(msg,type) {
   el.className='toast toast-'+type;
   el.innerHTML='<i class="fa-solid '+(icons[type]||icons.info)+'"></i><span>'+escHtml(msg)+'</span>';
   root.appendChild(el);
-  setTimeout(function(){ el.style.transition='opacity .3s'; el.style.opacity='0'; setTimeout(function(){el.remove();},320); },3500);
+  setTimeout(function(){ el.style.transition='opacity .3s';el.style.opacity='0';setTimeout(function(){el.remove();},320); },3500);
 }
 
 /* ── UTILS ── */
-function formatPrice(num){ return Number(num||0).toLocaleString('tr-TR',{style:'currency',currency:'TRY',minimumFractionDigits:2}); }
+function fmt(num){ return Number(num||0).toLocaleString('tr-TR',{style:'currency',currency:'TRY',minimumFractionDigits:2}); }
 function escHtml(s){ return String(s!==null&&s!==undefined?s:'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function escJs(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"'); }

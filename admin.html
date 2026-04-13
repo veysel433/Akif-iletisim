@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Admin Panel — Akif İletişim</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
   <style>
-    :root {
+    :root{
       --bg:#111315;--surface:#1a1d21;--surface-2:#21252b;--surface-3:#272c33;
       --border:#2e333a;--border-light:rgba(255,255,255,.05);
       --gold:#c9a84c;--gold-light:#e2c47a;--gold-dim:rgba(201,168,76,.12);--gold-border:rgba(201,168,76,.28);
@@ -24,139 +24,140 @@
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     a{color:inherit;text-decoration:none} img{display:block;max-width:100%}
     button{font-family:inherit;cursor:pointer;border:none;background:none}
-    input,select,textarea{font-family:inherit;font-size:inherit}
-    ul{list-style:none}
-    ::-webkit-scrollbar{width:4px;height:4px}
-    ::-webkit-scrollbar-track{background:transparent}
+    input,select,textarea{font-family:inherit;font-size:inherit} ul{list-style:none}
+    ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}
     ::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
     ::-webkit-scrollbar-thumb:hover{background:var(--gold)}
 
-    /* ── AUTH ── */
+    /* AUTH */
     #auth-overlay{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center}
-    .auth-card{width:min(420px,92vw);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:48px 40px;box-shadow:var(--shadow-md);animation:fade-up .5s ease both}
-    .auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:32px}
-    .auth-logo-icon{width:40px;height:40px;border-radius:var(--r-md);background:var(--gold-dim);border:1px solid var(--gold-border);display:flex;align-items:center;justify-content:center;color:var(--gold)}
-    .auth-logo-text{font-size:15px;font-weight:700;letter-spacing:-.02em}
-    .auth-logo-text span{color:var(--gold)}
-    .auth-card h2{font-size:22px;font-weight:700;margin-bottom:6px}
-    .auth-card p{font-size:13px;color:var(--text-2);margin-bottom:28px}
-    .auth-error{background:var(--red-dim);border:1px solid rgba(248,113,113,.25);color:var(--red);border-radius:var(--r-md);padding:10px 14px;font-size:13px;margin-bottom:16px;display:none;align-items:center;gap:6px}
-    @keyframes fade-up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .auth-card{width:min(420px,92vw);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:44px 38px;box-shadow:var(--shadow-md);animation:fade-up .5s ease both}
+    .auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+    .auth-logo-icon{width:38px;height:38px;border-radius:var(--r-md);background:var(--gold-dim);border:1px solid var(--gold-border);display:flex;align-items:center;justify-content:center;color:var(--gold)}
+    .auth-logo-text{font-size:14px;font-weight:700} .auth-logo-text span{color:var(--gold)}
+    .auth-card h2{font-size:21px;font-weight:700;margin-bottom:5px}
+    .auth-card p{font-size:12px;color:var(--text-2);margin-bottom:24px}
+    .auth-error{background:var(--red-dim);border:1px solid rgba(248,113,113,.25);color:var(--red);border-radius:var(--r-md);padding:9px 13px;font-size:12px;margin-bottom:14px;display:none;align-items:center;gap:6px}
+    @keyframes fade-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 
-    /* ── SHELL ── */
+    /* SHELL */
     #app{display:flex;min-height:100vh}
 
-    /* ── SIDEBAR ── */
+    /* SIDEBAR */
     .sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200;transition:transform var(--t)}
-    .sidebar__head{height:var(--header-h);display:flex;align-items:center;gap:10px;padding:0 20px;border-bottom:1px solid var(--border);flex-shrink:0}
-    .sidebar__logo-icon{width:34px;height:34px;border-radius:8px;background:var(--gold-dim);border:1px solid var(--gold-border);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:14px;flex-shrink:0}
-    .sidebar__logo-text{font-size:13px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
+    .sidebar__head{height:var(--header-h);display:flex;align-items:center;gap:10px;padding:0 18px;border-bottom:1px solid var(--border);flex-shrink:0}
+    .sidebar__logo-icon{width:32px;height:32px;border-radius:8px;background:var(--gold-dim);border:1px solid var(--gold-border);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:13px;flex-shrink:0}
+    .sidebar__logo-text{font-size:12px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
     .sidebar__logo-text span{color:var(--gold)}
     .sidebar__logo-sub{font-size:9px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3)}
-    .sidebar__nav{flex:1;overflow-y:auto;padding:16px 12px;display:flex;flex-direction:column;gap:4px}
-    .nav-section-label{font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);padding:12px 8px 4px}
-    .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r-md);font-size:13px;font-weight:500;color:var(--text-2);cursor:pointer;transition:all var(--t);border:1px solid transparent}
-    .nav-item i{width:16px;text-align:center;font-size:13px}
+    .sidebar__nav{flex:1;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:3px}
+    .nav-section-label{font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);padding:10px 8px 3px}
+    .nav-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:var(--r-md);font-size:13px;font-weight:500;color:var(--text-2);cursor:pointer;transition:all var(--t);border:1px solid transparent}
+    .nav-item i{width:15px;text-align:center;font-size:12px}
     .nav-item .nav-badge{margin-left:auto;background:var(--gold-dim);color:var(--gold);font-size:10px;font-weight:700;border-radius:99px;padding:1px 7px;border:1px solid var(--gold-border)}
     .nav-item:hover{color:var(--text-1);background:var(--surface-2)}
     .nav-item.active{color:var(--gold);background:var(--gold-dim);border-color:var(--gold-border)}
-    /* Dinamik kategori listesi */
-    .nav-cat-list{display:flex;flex-direction:column;gap:2px;padding-left:8px}
-    .nav-cat-item{font-size:11px;color:var(--text-3);padding:4px 12px;border-radius:6px;cursor:pointer;transition:color var(--t);display:flex;align-items:center;gap:6px}
+    .nav-cat-list{display:flex;flex-direction:column;gap:2px;padding-left:6px}
+    .nav-cat-item{font-size:11px;color:var(--text-3);padding:4px 11px;border-radius:6px;cursor:pointer;transition:color var(--t)}
+    .nav-cat-item::before{content:'·';margin-right:6px}
     .nav-cat-item:hover{color:var(--gold)}
-    .nav-cat-item::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--border);flex-shrink:0}
-    .sidebar__footer{padding:16px 12px;border-top:1px solid var(--border)}
-    .sidebar__user{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r-md);background:var(--surface-2);border:1px solid var(--border)}
-    .sidebar__avatar{width:32px;height:32px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold-border);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:12px;font-weight:700;flex-shrink:0}
+    .sidebar__footer{padding:12px 10px;border-top:1px solid var(--border)}
+    .sidebar__user{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:var(--r-md);background:var(--surface-2);border:1px solid var(--border)}
+    .sidebar__avatar{width:30px;height:30px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold-border);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:12px;font-weight:700;flex-shrink:0}
     .sidebar__user-info{flex:1;min-width:0}
     .sidebar__user-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .sidebar__user-role{font-size:10px;color:var(--text-3)}
-    .sidebar__logout{width:28px;height:28px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;color:var(--text-3);transition:all var(--t);flex-shrink:0}
+    .sidebar__logout{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--text-3);transition:all var(--t);flex-shrink:0}
     .sidebar__logout:hover{color:var(--red);background:var(--red-dim)}
 
-    /* ── MAIN ── */
+    /* MAIN */
     .main{flex:1;margin-left:var(--sidebar-w);display:flex;flex-direction:column;min-height:100vh}
-    .topbar{height:var(--header-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:100;flex-shrink:0}
-    .topbar__left{display:flex;align-items:center;gap:12px}
-    .topbar__page-title{font-size:16px;font-weight:700;letter-spacing:-.02em}
-    .topbar__breadcrumb{font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:6px}
-    .topbar__right{display:flex;align-items:center;gap:8px}
-    .topbar__btn{width:36px;height:36px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;color:var(--text-2);border:1px solid var(--border);background:var(--surface-2);transition:all var(--t);cursor:pointer}
+    .topbar{height:var(--header-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100;flex-shrink:0}
+    .topbar__left{display:flex;align-items:center;gap:10px}
+    .topbar__page-title{font-size:15px;font-weight:700;letter-spacing:-.02em}
+    .topbar__breadcrumb{font-size:11px;color:var(--text-3);display:flex;align-items:center;gap:5px}
+    .topbar__right{display:flex;align-items:center;gap:7px}
+    .topbar__btn{width:34px;height:34px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;color:var(--text-2);border:1px solid var(--border);background:var(--surface-2);transition:all var(--t);cursor:pointer}
     .topbar__btn:hover{color:var(--text-1);border-color:var(--gold-border)}
-    .content{flex:1;padding:28px;display:flex;flex-direction:column;gap:28px}
-    .panel{display:none;flex-direction:column;gap:24px;animation:fade-up .35s ease}
+    .content{flex:1;padding:24px;display:flex;flex-direction:column;gap:24px}
+    .panel{display:none;flex-direction:column;gap:20px;animation:fade-up .35s ease}
     .panel.active{display:flex}
 
-    /* ── STATS ── */
-    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 22px;display:flex;flex-direction:column;gap:14px;transition:border-color var(--t),box-shadow var(--t)}
+    /* STATS */
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;display:flex;flex-direction:column;gap:12px;transition:border-color var(--t),box-shadow var(--t)}
     .stat-card:hover{border-color:var(--gold-border);box-shadow:var(--shadow-gold)}
     .stat-card__header{display:flex;align-items:center;justify-content:space-between}
-    .stat-card__label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2)}
-    .stat-card__icon{width:32px;height:32px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-size:13px}
-    .stat-card__value{font-size:28px;font-weight:800;letter-spacing:-.04em;line-height:1}
-    .stat-card__sub{font-size:11px;color:var(--text-2)}
+    .stat-card__label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2)}
+    .stat-card__icon{width:30px;height:30px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-size:12px}
+    .stat-card__value{font-size:26px;font-weight:800;letter-spacing:-.04em;line-height:1}
+    .stat-card__sub{font-size:10px;color:var(--text-2)}
 
-    /* ── CARD ── */
+    /* CARD */
     .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);overflow:hidden}
-    .card__header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap}
-    .card__title{font-size:15px;font-weight:700;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
-    .card__title i{color:var(--gold);font-size:13px}
-    .card__body{padding:24px}
+    .card__header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap}
+    .card__title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px}
+    .card__title i{color:var(--gold);font-size:12px}
+    .card__body{padding:22px}
 
-    /* ── FORM ── */
-    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    /* FORM */
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
     .form-grid .span-2{grid-column:span 2}
-    .form-group{display:flex;flex-direction:column;gap:6px}
-    .form-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2)}
+    .form-group{display:flex;flex-direction:column;gap:5px}
+    .form-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2)}
     .form-label .req{color:var(--gold);margin-left:2px}
-    .form-input,.form-select,.form-textarea{width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 14px;color:var(--text-1);font-size:13px;transition:all var(--t);appearance:none}
+    .form-input,.form-select,.form-textarea{width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);padding:9px 12px;color:var(--text-1);font-size:13px;transition:all var(--t);appearance:none}
     .form-select option,select option{background:#21252b;color:#eaedf0}
     .form-input::placeholder,.form-textarea::placeholder{color:var(--text-3)}
     .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--gold);background:var(--surface-3);box-shadow:0 0 0 3px var(--gold-dim);outline:none}
-    .form-textarea{resize:vertical;min-height:100px;line-height:1.6}
+    .form-textarea{resize:vertical;min-height:90px;line-height:1.6}
     .input-wrap{position:relative}
-    .input-prefix{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:600;color:var(--text-2);pointer-events:none}
-    .input-wrap .form-input{padding-left:28px}
+    .input-prefix{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:600;color:var(--text-2);pointer-events:none}
+    .input-wrap .form-input{padding-left:26px}
     .select-wrap{position:relative}
-    .select-wrap::after{content:'\f107';font-family:'Font Awesome 6 Free';font-weight:900;position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text-2);pointer-events:none;font-size:11px}
-    .select-wrap .form-select{padding-right:32px}
-    .category-row{display:flex;gap:8px;align-items:center}
+    .select-wrap::after{content:'\f107';font-family:'Font Awesome 6 Free';font-weight:900;position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--text-2);pointer-events:none;font-size:10px}
+    .select-wrap .form-select{padding-right:30px}
+    .category-row{display:flex;gap:7px;align-items:center}
     .category-row .select-wrap{flex:1}
-    .new-cat-wrap{display:none;gap:8px;align-items:center;margin-top:8px}
+    .new-cat-wrap{display:none;gap:7px;align-items:center;margin-top:7px}
     .new-cat-wrap.visible{display:flex}
-    .toggle-group{display:flex;gap:8px}
-    .toggle-option{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);border:1px solid var(--border);font-size:12px;font-weight:500;color:var(--text-2);cursor:pointer;transition:all var(--t)}
+    .toggle-group{display:flex;gap:7px}
+    .toggle-option{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 10px;border-radius:var(--r-md);border:1px solid var(--border);font-size:11px;font-weight:500;color:var(--text-2);cursor:pointer;transition:all var(--t)}
     .toggle-option.active-green{background:var(--green-dim);border-color:rgba(74,222,128,.3);color:var(--green)}
     .toggle-option.active-red{background:var(--red-dim);border-color:rgba(248,113,113,.3);color:var(--red)}
     .toggle-option:not(.active-green):not(.active-red):hover{background:var(--surface-3);color:var(--text-1)}
 
-    /* Görsel yükleme alanı */
-    .img-upload-tabs{display:flex;gap:8px;margin-bottom:10px}
-    .img-tab{padding:6px 14px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-2);transition:all var(--t)}
+    /* Çoklu görsel UI */
+    .img-upload-tabs{display:flex;gap:7px;margin-bottom:9px}
+    .img-tab{padding:5px 13px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-2);transition:all var(--t)}
     .img-tab.active{background:var(--gold-dim);border-color:var(--gold-border);color:var(--gold)}
-    .img-tab-content{display:none}
-    .img-tab-content.active{display:block}
-    .img-preview{width:100%;aspect-ratio:16/9;background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-top:10px;transition:border-color var(--t);position:relative}
-    .img-preview img{width:100%;height:100%;object-fit:cover;display:none}
-    .img-preview .placeholder{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--text-3);font-size:12px;pointer-events:none}
-    .img-preview .placeholder i{font-size:24px}
-    .file-drop-zone{width:100%;border:2px dashed var(--border);border-radius:var(--r-lg);padding:28px 20px;text-align:center;cursor:pointer;transition:all var(--t);background:var(--surface-2)}
+    .img-tab-content{display:none} .img-tab-content.active{display:block}
+    .img-url-row{display:flex;gap:7px;align-items:center}
+    .img-url-row .form-input{flex:1}
+    .img-preview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:10px;min-height:40px}
+    .img-thumb-wrap{position:relative;aspect-ratio:1/1;border-radius:var(--r-md);overflow:hidden;background:var(--surface-2);border:1px solid var(--border)}
+    .img-thumb{width:100%;height:100%;object-fit:contain}
+    .img-thumb-remove{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.7);border:none;color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s}
+    .img-thumb-remove:hover{background:var(--red)}
+    .img-thumb-badge{position:absolute;bottom:4px;left:4px;font-size:8px;font-weight:700;background:var(--gold);color:#0a0a0a;padding:1px 5px;border-radius:4px}
+    .img-placeholder{display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px;color:var(--text-3);font-size:12px;grid-column:1/-1;text-align:center}
+    .img-placeholder i{font-size:22px}
+    .file-drop-zone{border:2px dashed var(--border);border-radius:var(--r-lg);padding:22px 16px;text-align:center;cursor:pointer;transition:all var(--t);background:var(--surface-2)}
     .file-drop-zone:hover,.file-drop-zone.drag-over{border-color:var(--gold);background:var(--gold-dim)}
-    .file-drop-zone i{font-size:28px;color:var(--text-3);margin-bottom:8px;display:block}
-    .file-drop-zone p{font-size:12px;color:var(--text-2);margin-bottom:4px}
-    .file-drop-zone small{font-size:11px;color:var(--text-3)}
+    .file-drop-zone i{font-size:24px;color:var(--text-3);margin-bottom:7px;display:block}
+    .file-drop-zone p{font-size:12px;color:var(--text-2);margin-bottom:3px}
+    .file-drop-zone small{font-size:10px;color:var(--text-3)}
     #file-input{display:none}
-    .upload-progress{margin-top:10px;display:none}
-    .progress-bar-wrap{height:4px;background:var(--border);border-radius:99px;overflow:hidden}
-    .progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:99px;width:0%;transition:width .3s ease}
+    .upload-progress{margin-top:8px;display:none}
+    .progress-bar-wrap{height:3px;background:var(--border);border-radius:99px;overflow:hidden}
+    .progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:99px;width:0%;transition:width .3s}
     .progress-label{font-size:11px;color:var(--text-2);margin-top:4px}
-    .discount-preview{display:none;align-items:center;gap:12px;padding:12px 16px;background:var(--surface-2);border:1px solid var(--gold-border);border-radius:var(--r-md)}
+    .discount-preview{display:none;align-items:center;gap:10px;padding:10px 14px;background:var(--surface-2);border:1px solid var(--gold-border);border-radius:var(--r-md)}
 
-    /* ── BUTONLAR ── */
-    .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 20px;border-radius:var(--r-md);font-size:13px;font-weight:600;letter-spacing:.02em;cursor:pointer;transition:all var(--t);border:1px solid transparent;white-space:nowrap}
-    .btn i{font-size:12px}
-    .btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:#0a0a0a;box-shadow:0 4px 14px rgba(201,168,76,.22)}
+    /* BUTONLAR */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 18px;border-radius:var(--r-md);font-size:12px;font-weight:600;letter-spacing:.02em;cursor:pointer;transition:all var(--t);border:1px solid transparent;white-space:nowrap}
+    .btn i{font-size:11px}
+    .btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:#0a0a0a;box-shadow:0 4px 12px rgba(201,168,76,.22)}
     .btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px)}
     .btn-outline{background:transparent;color:var(--text-2);border-color:var(--border)}
     .btn-outline:hover{color:var(--text-1);border-color:var(--text-2)}
@@ -165,110 +166,109 @@
     .btn-danger{background:var(--red-dim);color:var(--red);border-color:rgba(248,113,113,.25)}
     .btn-danger:hover{background:rgba(248,113,113,.22)}
     .btn-success{background:var(--green-dim);color:var(--green);border-color:rgba(74,222,128,.25)}
-    .btn-success:hover{background:rgba(74,222,128,.22)}
-    .btn-sm{padding:7px 14px;font-size:12px}
-    .btn-xs{padding:5px 10px;font-size:11px;border-radius:var(--r-sm)}
+    .btn-success:hover{background:rgba(74,222,128,.2)}
+    .btn-sm{padding:6px 12px;font-size:11px}
+    .btn-xs{padding:4px 9px;font-size:10px;border-radius:var(--r-sm)}
     .btn-full{width:100%}
     .btn .spinner{display:none}
     .btn.loading .btn-label{display:none}
-    .btn.loading .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,0,0,.2);border-top-color:#0a0a0a;border-radius:50%;animation:spin .6s linear infinite}
+    .btn.loading .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(0,0,0,.2);border-top-color:#0a0a0a;border-radius:50%;animation:spin .6s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
 
-    /* ── TABLE ── */
+    /* TABLE */
     .table-wrap{overflow-x:auto}
-    table{width:100%;border-collapse:collapse;font-size:13px}
-    thead th{padding:12px 16px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    thead th{padding:11px 14px;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}
     tbody tr{border-bottom:1px solid var(--border-light);transition:background var(--t)}
     tbody tr:last-child{border-bottom:none}
     tbody tr:hover{background:var(--surface-2)}
-    td{padding:14px 16px;color:var(--text-1);vertical-align:middle}
-    .td-actions{display:flex;gap:6px}
-    .product-thumb{width:44px;height:44px;border-radius:var(--r-md);background:var(--surface-3);object-fit:cover;border:1px solid var(--border);flex-shrink:0}
-    .product-name-cell{display:flex;align-items:center;gap:12px}
+    td{padding:12px 14px;color:var(--text-1);vertical-align:middle}
+    .td-actions{display:flex;gap:5px;align-items:center}
+    .product-thumb{width:40px;height:40px;border-radius:var(--r-md);background:var(--surface-3);object-fit:contain;border:1px solid var(--border);flex-shrink:0}
+    .product-name-cell{display:flex;align-items:center;gap:10px}
     .product-name-cell .name{font-weight:600}
-    .product-name-cell .cat{font-size:11px;color:var(--text-2)}
+    .product-name-cell .cat{font-size:10px;color:var(--text-2)}
 
-    /* ── BADGES ── */
-    .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:10px;font-weight:700;letter-spacing:.04em}
+    /* BADGES */
+    .badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:99px;font-size:9px;font-weight:700;letter-spacing:.04em}
     .badge-green{background:var(--green-dim);color:var(--green)}
     .badge-red{background:var(--red-dim);color:var(--red)}
     .badge-amber{background:var(--amber-dim);color:var(--amber)}
     .badge-gold{background:var(--gold-dim);color:var(--gold);border:1px solid var(--gold-border)}
 
-    /* ── COMMENT ── */
-    .comment-list{display:flex;flex-direction:column;gap:12px}
-    .comment-card{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;display:flex;gap:16px;align-items:flex-start;transition:border-color var(--t);animation:fade-up .3s ease both}
+    /* COMMENT */
+    .comment-list{display:flex;flex-direction:column;gap:10px}
+    .comment-card{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 18px;display:flex;gap:13px;align-items:flex-start;animation:fade-up .3s ease both}
     .comment-card.approved{border-left:3px solid var(--green)}
     .comment-card.pending{border-left:3px solid var(--amber)}
-    .comment-avatar{width:38px;height:38px;border-radius:50%;background:var(--surface-3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--gold);flex-shrink:0}
+    .comment-avatar{width:36px;height:36px;border-radius:50%;background:var(--surface-3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--gold);flex-shrink:0}
     .comment-body{flex:1;min-width:0}
-    .comment-header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+    .comment-header{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px}
     .comment-author{font-size:13px;font-weight:600}
-    .comment-product{font-size:11px;color:var(--text-2)}
-    .comment-date{font-size:11px;color:var(--text-3);margin-left:auto}
-    .comment-stars i{font-size:10px;color:var(--gold)}
-    .comment-text{font-size:13px;color:var(--text-2);line-height:1.65;margin-block:8px}
-    .comment-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+    .comment-product{font-size:10px;color:var(--text-2)}
+    .comment-date{font-size:10px;color:var(--text-3);margin-left:auto}
+    .comment-stars i{font-size:9px;color:var(--gold)}
+    .comment-text{font-size:12px;color:var(--text-2);line-height:1.65;margin-block:7px}
+    .comment-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
 
-    /* ── TOOLBAR ── */
-    .toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    /* TOOLBAR */
+    .toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
     .search-input-wrap{position:relative}
-    .search-input-wrap i{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:12px;pointer-events:none}
-    .search-input{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);padding:9px 12px 9px 32px;color:var(--text-1);font-size:13px;width:220px;transition:all var(--t)}
+    .search-input-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:11px;pointer-events:none}
+    .search-input{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);padding:8px 11px 8px 30px;color:var(--text-1);font-size:12px;width:200px;transition:all var(--t)}
     .search-input::placeholder{color:var(--text-3)}
     .search-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim);outline:none}
 
-    /* ── TOAST ── */
-    #toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px}
-    .toast{display:flex;align-items:center;gap:12px;min-width:280px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);animation:slide-toast .35s cubic-bezier(.34,1.56,.64,1) both;font-size:13px;font-weight:500}
-    .toast i{font-size:14px}
+    /* TOAST */
+    #toast-container{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+    .toast{display:flex;align-items:center;gap:10px;min-width:260px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-md);animation:slide-toast .3s cubic-bezier(.34,1.56,.64,1) both;font-size:12px;font-weight:500}
+    .toast i{font-size:13px}
     .toast-success{border-left:3px solid var(--green)} .toast-success i{color:var(--green)}
     .toast-error{border-left:3px solid var(--red)}     .toast-error i{color:var(--red)}
     .toast-info{border-left:3px solid var(--gold)}     .toast-info i{color:var(--gold)}
-    @keyframes slide-toast{from{opacity:0;transform:translateX(24px) scale(.96)}to{opacity:1;transform:translateX(0) scale(1)}}
+    @keyframes slide-toast{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
 
-    /* ── CONFIRM ── */
+    /* CONFIRM */
     .confirm-overlay{position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--t)}
     .confirm-overlay.open{opacity:1;pointer-events:all}
-    .confirm-box{width:min(400px,90vw);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:32px;box-shadow:var(--shadow-md);transform:scale(.95);transition:transform var(--t);text-align:center}
+    .confirm-box{width:min(400px,90vw);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:28px;box-shadow:var(--shadow-md);transform:scale(.95);transition:transform var(--t);text-align:center}
     .confirm-overlay.open .confirm-box{transform:scale(1)}
-    .confirm-icon{width:52px;height:52px;border-radius:50%;background:var(--red-dim);border:1px solid rgba(248,113,113,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:20px;color:var(--red)}
-    .confirm-box h3{font-size:17px;font-weight:700;margin-bottom:8px}
-    .confirm-box p{font-size:13px;color:var(--text-2);margin-bottom:24px}
-    .confirm-actions{display:flex;gap:10px}
+    .confirm-icon{width:48px;height:48px;border-radius:50%;background:var(--red-dim);border:1px solid rgba(248,113,113,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:18px;color:var(--red)}
+    .confirm-box h3{font-size:15px;font-weight:700;margin-bottom:7px}
+    .confirm-box p{font-size:12px;color:var(--text-2);margin-bottom:20px;white-space:pre-line}
+    .confirm-actions{display:flex;gap:9px}
     .confirm-actions .btn{flex:1}
 
-    .divider{height:1px;background:var(--border);margin-block:4px}
-    .text-muted{color:var(--text-2);font-size:12px}
-    .skeleton{background:linear-gradient(90deg,var(--surface) 0%,var(--surface-3) 50%,var(--surface) 100%);background-size:200% 100%;border-radius:var(--r-md);animation:shimmer 1.5s ease infinite}
-    @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .divider{height:1px;background:var(--border);margin-block:3px}
+    .text-muted{color:var(--text-2);font-size:11px}
 
     @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:768px){
       .sidebar{transform:translateX(-100%)} .sidebar.open{transform:translateX(0);box-shadow:0 0 40px rgba(0,0,0,.8)}
       .main{margin-left:0} .form-grid{grid-template-columns:1fr} .form-grid .span-2{grid-column:span 1}
-      .stats-grid{grid-template-columns:1fr 1fr} .topbar{padding:0 16px} .content{padding:16px}
+      .stats-grid{grid-template-columns:1fr 1fr} .topbar{padding:0 14px} .content{padding:14px}
       #sidebar-toggle{display:flex !important}
     }
     @media(max-width:480px){.stats-grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
-
 <!-- AUTH -->
 <div id="auth-overlay">
   <div class="auth-card">
     <div class="auth-logo">
       <div class="auth-logo-icon"><i class="fa-solid fa-bolt"></i></div>
-      <div><div class="auth-logo-text">Akif <span>İletişim</span></div><div style="font-size:10px;color:var(--text-3);letter-spacing:.1em;text-transform:uppercase;">Admin Panel</div></div>
+      <div><div class="auth-logo-text">Akif <span>İletişim</span></div><div style="font-size:9px;color:var(--text-3);letter-spacing:.1em;text-transform:uppercase;">Admin</div></div>
     </div>
     <h2>Güvenli Giriş</h2>
     <p>Yönetim paneline erişmek için giriş yapın.</p>
     <div class="auth-error" id="auth-error"><i class="fa-solid fa-circle-exclamation"></i><span id="auth-error-text"></span></div>
-    <div style="display:flex;flex-direction:column;gap:12px;">
-      <div class="form-group"><label class="form-label">E-posta</label><input type="email" id="login-email" class="form-input" placeholder="admin@akifiletisim.com" /></div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="form-group"><label class="form-label">E-posta</label><input type="email" id="login-email" class="form-input" placeholder="admin@akifiletisim.com"/></div>
       <div class="form-group"><label class="form-label">Şifre</label>
-        <div style="position:relative;"><input type="password" id="login-password" class="form-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()" /><button type="button" onclick="togglePw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:13px;"><i class="fa-regular fa-eye" id="pw-eye"></i></button></div>
+        <div style="position:relative;"><input type="password" id="login-password" class="form-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()"/>
+          <button type="button" onclick="togglePw()" style="position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:12px;"><i class="fa-regular fa-eye" id="pw-eye"></i></button>
+        </div>
       </div>
       <button class="btn btn-primary btn-full" id="login-btn" onclick="adminLogin()" style="margin-top:4px;">
         <span class="btn-label"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</span><span class="spinner"></span>
@@ -282,7 +282,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar__head">
       <div class="sidebar__logo-icon"><i class="fa-solid fa-bolt"></i></div>
-      <div><div class="sidebar__logo-text">Akif <span>İletişim</span></div><div class="sidebar__logo-sub">Admin Panel</div></div>
+      <div><div class="sidebar__logo-text">Akif <span>İletişim</span></div><div class="sidebar__logo-sub">Admin</div></div>
     </div>
     <nav class="sidebar__nav">
       <div class="nav-section-label">Genel</div>
@@ -290,14 +290,15 @@
       <div class="nav-section-label">Katalog</div>
       <div class="nav-item" data-panel="add-product" onclick="switchPanel('add-product',this)"><i class="fa-solid fa-plus"></i> Ürün Ekle</div>
       <div class="nav-item" data-panel="products" onclick="switchPanel('products',this)"><i class="fa-solid fa-box"></i> Ürünler <span class="nav-badge" id="nav-product-count">—</span></div>
-      <!-- Dinamik kategori listesi -->
       <div class="nav-section-label">Kategoriler</div>
       <div class="nav-cat-list" id="nav-cat-list"></div>
+      <div class="nav-section-label">Satış</div>
+      <div class="nav-item" data-panel="orders" onclick="switchPanel('orders',this)"><i class="fa-solid fa-bag-shopping"></i> Siparişler <span class="nav-badge" id="nav-order-count">—</span></div>
       <div class="nav-section-label">Topluluk</div>
       <div class="nav-item" data-panel="comments" onclick="switchPanel('comments',this)"><i class="fa-solid fa-comments"></i> Yorumlar <span class="nav-badge" id="nav-comment-count">—</span></div>
-      <div class="divider" style="margin:8px 0;"></div>
+      <div class="divider" style="margin:6px 0;"></div>
       <div class="nav-item" onclick="window.open('index.html')"><i class="fa-solid fa-arrow-up-right-from-square"></i> Siteye Git</div>
-      <div class="nav-item" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket"></i> Çıkış Yap</div>
+      <div class="nav-item" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket"></i> Çıkış</div>
     </nav>
     <div class="sidebar__footer">
       <div class="sidebar__user">
@@ -312,7 +313,7 @@
     <header class="topbar">
       <div class="topbar__left">
         <button class="topbar__btn" id="sidebar-toggle" onclick="toggleSidebar()" style="display:none;"><i class="fa-solid fa-bars"></i></button>
-        <div><div class="topbar__page-title" id="page-title">Genel Bakış</div><div class="topbar__breadcrumb">Akif İletişim <i class="fa-solid fa-chevron-right" style="font-size:9px;"></i> <span id="breadcrumb-current">Dashboard</span></div></div>
+        <div><div class="topbar__page-title" id="page-title">Genel Bakış</div><div class="topbar__breadcrumb">Akif İletişim <i class="fa-solid fa-chevron-right" style="font-size:8px;"></i> <span id="breadcrumb-current">Dashboard</span></div></div>
       </div>
       <div class="topbar__right">
         <button class="topbar__btn" onclick="refreshCurrentPanel()"><i class="fa-solid fa-rotate-right"></i></button>
@@ -321,99 +322,85 @@
     </header>
 
     <div class="content">
-
       <!-- DASHBOARD -->
       <section class="panel active" id="panel-dashboard">
         <div class="stats-grid">
           <div class="stat-card"><div class="stat-card__header"><div class="stat-card__label">Toplam Ürün</div><div class="stat-card__icon" style="background:var(--gold-dim);color:var(--gold);"><i class="fa-solid fa-box"></i></div></div><div class="stat-card__value" id="stat-products">—</div><div class="stat-card__sub">Aktif katalog</div></div>
+          <div class="stat-card"><div class="stat-card__header"><div class="stat-card__label">Siparişler</div><div class="stat-card__icon" style="background:rgba(74,222,128,.12);color:var(--green);"><i class="fa-solid fa-bag-shopping"></i></div></div><div class="stat-card__value" id="stat-orders">—</div><div class="stat-card__sub">Toplam</div></div>
           <div class="stat-card"><div class="stat-card__header"><div class="stat-card__label">Bekleyen Yorum</div><div class="stat-card__icon" style="background:var(--amber-dim);color:var(--amber);"><i class="fa-solid fa-clock"></i></div></div><div class="stat-card__value" id="stat-pending">—</div><div class="stat-card__sub">Onay bekliyor</div></div>
-          <div class="stat-card"><div class="stat-card__header"><div class="stat-card__label">Onaylı Yorum</div><div class="stat-card__icon" style="background:var(--green-dim);color:var(--green);"><i class="fa-solid fa-circle-check"></i></div></div><div class="stat-card__value" id="stat-approved">—</div><div class="stat-card__sub">Yayında</div></div>
-          <div class="stat-card"><div class="stat-card__header"><div class="stat-card__label">İndirimli Ürün</div><div class="stat-card__icon" style="background:var(--red-dim);color:var(--red);"><i class="fa-solid fa-tag"></i></div></div><div class="stat-card__value" id="stat-sale">—</div><div class="stat-card__sub">Kampanyada</div></div>
+          <div class="stat-card"><div class="stat-card__header"><div class="stat-card__label">İndirimli</div><div class="stat-card__icon" style="background:var(--red-dim);color:var(--red);"><i class="fa-solid fa-tag"></i></div></div><div class="stat-card__value" id="stat-sale">—</div><div class="stat-card__sub">Kampanyada</div></div>
         </div>
         <div class="card">
-          <div class="card__header"><div class="card__title"><i class="fa-solid fa-clock-rotate-left"></i> Son Eklenen Ürünler</div><button class="btn btn-ghost btn-sm" onclick="switchPanel('products',document.querySelector('[data-panel=products]'))">Tümünü Gör <i class="fa-solid fa-arrow-right"></i></button></div>
-          <div class="table-wrap"><table><thead><tr><th>Ürün</th><th>Kategori</th><th>Fiyat</th><th>Stok</th><th>İşlem</th></tr></thead><tbody id="recent-products-body"><tr><td colspan="5" style="padding:32px;text-align:center;color:var(--text-3);"><i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i>Yükleniyor…</td></tr></tbody></table></div>
+          <div class="card__header"><div class="card__title"><i class="fa-solid fa-clock-rotate-left"></i> Son Eklenen Ürünler</div><button class="btn btn-ghost btn-sm" onclick="switchPanel('products',document.querySelector('[data-panel=products]'))">Tümü <i class="fa-solid fa-arrow-right"></i></button></div>
+          <div class="table-wrap"><table><thead><tr><th>Ürün</th><th>Kategori</th><th>Fiyat</th><th>Stok</th><th>İşlem</th></tr></thead><tbody id="recent-products-body"><tr><td colspan="5" style="padding:28px;text-align:center;color:var(--text-3);"><i class="fa-solid fa-spinner fa-spin" style="margin-right:5px;"></i>Yükleniyor…</td></tr></tbody></table></div>
         </div>
       </section>
 
       <!-- ÜRÜN EKLE -->
       <section class="panel" id="panel-add-product">
         <div class="card">
-          <div class="card__header"><div class="card__title"><i class="fa-solid fa-plus"></i> <span id="form-panel-title">Yeni Ürün Ekle</span></div><button class="btn btn-ghost btn-sm" onclick="resetProductForm()"><i class="fa-solid fa-rotate-left"></i> Sıfırla</button></div>
+          <div class="card__header">
+            <div class="card__title"><i class="fa-solid fa-plus"></i> <span id="form-panel-title">Yeni Ürün Ekle</span></div>
+            <button class="btn btn-ghost btn-sm" onclick="resetProductForm()"><i class="fa-solid fa-rotate-left"></i> Sıfırla</button>
+          </div>
           <div class="card__body">
             <form id="product-form" onsubmit="handleProductSubmit(event)">
-              <input type="hidden" id="p-edit-id" />
+              <input type="hidden" id="p-edit-id"/>
               <div class="form-grid">
-                <div class="form-group span-2"><label class="form-label">Ürün Adı <span class="req">*</span></label><input type="text" id="p-name" class="form-input" placeholder="Örn: iPhone 15 Pro Max 256GB" required /></div>
+                <div class="form-group span-2"><label class="form-label">Ürün Adı <span class="req">*</span></label><input type="text" id="p-name" class="form-input" placeholder="Örn: iPhone 15 Pro Max 256GB" required/></div>
                 <div class="form-group">
                   <label class="form-label">Kategori <span class="req">*</span></label>
-                  <div class="category-row">
-                    <div class="select-wrap" style="flex:1;"><select id="p-category" class="form-select" required onchange="onCategoryChange(this.value)"><option value="">Seçiniz…</option></select></div>
-                  </div>
+                  <div class="category-row"><div class="select-wrap" style="flex:1;"><select id="p-category" class="form-select" required onchange="onCategoryChange(this.value)"><option value="">Seçiniz…</option></select></div></div>
                   <div class="new-cat-wrap" id="new-cat-wrap">
-                    <input type="text" class="form-input" id="new-cat-input" placeholder="Yeni kategori adı…" style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomCategory();}" />
+                    <input type="text" class="form-input" id="new-cat-input" placeholder="Yeni kategori adı…" style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomCategory();}"/>
                     <button type="button" class="btn btn-primary btn-sm" onclick="addCustomCategory()"><i class="fa-solid fa-plus"></i> Ekle</button>
                     <button type="button" class="btn btn-ghost btn-sm" onclick="cancelNewCategory()"><i class="fa-solid fa-xmark"></i></button>
                   </div>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Stok Durumu <span class="req">*</span></label>
+                  <label class="form-label">Stok <span class="req">*</span></label>
                   <div class="toggle-group" id="stock-toggle">
-                    <button type="button" class="toggle-option active-green" data-value="instock" onclick="setStock('instock',this)"><i class="fa-solid fa-circle-check"></i> Stokta Var</button>
+                    <button type="button" class="toggle-option active-green" data-value="instock" onclick="setStock('instock',this)"><i class="fa-solid fa-circle-check"></i> Var</button>
                     <button type="button" class="toggle-option" data-value="outofstock" onclick="setStock('outofstock',this)"><i class="fa-solid fa-ban"></i> Tükendi</button>
                   </div>
-                  <input type="hidden" id="p-stock" value="instock" />
+                  <input type="hidden" id="p-stock" value="instock"/>
                 </div>
-                <div class="form-group">
-                  <label class="form-label">Normal Fiyat (₺) <span class="req">*</span></label>
-                  <div class="input-wrap"><span class="input-prefix">₺</span><input type="number" id="p-price" class="form-input" placeholder="0,00" min="0" step="0.01" required oninput="updateDiscountBadge()" /></div>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">İndirimli Fiyat (₺) <span style="color:var(--text-3);font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;">— opsiyonel</span></label>
-                  <div class="input-wrap"><span class="input-prefix">₺</span><input type="number" id="p-sale-price" class="form-input" placeholder="0,00" min="0" step="0.01" oninput="updateDiscountBadge()" /></div>
-                </div>
-                <div class="form-group span-2" id="discount-preview-wrap">
-                  <div class="discount-preview" id="discount-preview"><i class="fa-solid fa-tag" style="color:var(--gold);"></i><span style="font-size:12px;color:var(--text-2);">Önizleme:</span><span style="font-size:14px;font-weight:700;color:var(--gold);" id="preview-sale-price"></span><span id="preview-old-price" style="font-size:12px;color:var(--text-3);text-decoration:line-through;"></span><span id="preview-pct" class="badge badge-gold" style="margin-left:auto;"></span></div>
-                </div>
-                <div class="form-group span-2"><label class="form-label">Ürün Açıklaması <span class="req">*</span></label><textarea id="p-desc" class="form-textarea" placeholder="Ürünün özelliklerini yazın…" required></textarea></div>
+                <div class="form-group"><label class="form-label">Normal Fiyat (₺) <span class="req">*</span></label><div class="input-wrap"><span class="input-prefix">₺</span><input type="number" id="p-price" class="form-input" placeholder="0,00" min="0" step="0.01" required oninput="updateDiscountBadge()"/></div></div>
+                <div class="form-group"><label class="form-label">İndirimli Fiyat (₺) <span style="color:var(--text-3);font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;">opsiyonel</span></label><div class="input-wrap"><span class="input-prefix">₺</span><input type="number" id="p-sale-price" class="form-input" placeholder="0,00" min="0" step="0.01" oninput="updateDiscountBadge()"/></div></div>
+                <div class="form-group span-2"><div class="discount-preview" id="discount-preview"><i class="fa-solid fa-tag" style="color:var(--gold);"></i><span style="font-size:11px;color:var(--text-2);">Önizleme:</span><span style="font-size:13px;font-weight:700;color:var(--gold);" id="preview-sale-price"></span><span id="preview-old-price" style="font-size:11px;color:var(--text-3);text-decoration:line-through;"></span><span id="preview-pct" class="badge badge-gold" style="margin-left:auto;"></span></div></div>
+                <div class="form-group span-2"><label class="form-label">Açıklama <span class="req">*</span></label><textarea id="p-desc" class="form-textarea" placeholder="Ürünün özelliklerini yazın…" required></textarea></div>
 
-                <!-- ── GÖRSEL YÜKLEME ── -->
+                <!-- ÇOK SAYIDA GÖRSEL -->
                 <div class="form-group span-2">
-                  <label class="form-label">Ürün Görseli <span class="req">*</span></label>
+                  <label class="form-label">Ürün Görselleri <span class="req">*</span> <span style="color:var(--text-3);font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;">— max 8 adet, otomatik sıkıştırılır</span></label>
                   <div class="img-upload-tabs">
-                    <button type="button" class="img-tab active" onclick="switchImgTab('url',this)"><i class="fa-solid fa-link"></i> URL</button>
-                    <button type="button" class="img-tab" onclick="switchImgTab('file',this)"><i class="fa-solid fa-upload"></i> Dosya Yükle</button>
+                    <button type="button" class="img-tab active" onclick="switchImgTab('file',this)"><i class="fa-solid fa-upload"></i> Dosya Yükle</button>
+                    <button type="button" class="img-tab" onclick="switchImgTab('url',this)"><i class="fa-solid fa-link"></i> URL Ekle</button>
                   </div>
-                  <!-- URL tabı -->
-                  <div class="img-tab-content active" id="tab-url">
-                    <input type="url" id="p-img" class="form-input" placeholder="https://example.com/urun.jpg" oninput="previewImageFromUrl(this.value)" />
-                  </div>
-                  <!-- Dosya tabı -->
-                  <div class="img-tab-content" id="tab-file">
-                    <div class="file-drop-zone" id="file-drop-zone" onclick="document.getElementById('file-input').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+                  <div class="img-tab-content active" id="tab-file">
+                    <div class="file-drop-zone" id="file-drop-zone" onclick="document.getElementById('file-input').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave()" ondrop="handleDrop(event)">
                       <i class="fa-solid fa-cloud-arrow-up"></i>
-                      <p>Dosyayı buraya sürükle veya tıkla</p>
-                      <small>JPG, PNG, WEBP — Maks. 5MB</small>
+                      <p>Fotoğrafları sürükle veya tıkla</p>
+                      <small>Çok sayıda seçilebilir · JPG, PNG, WEBP · Otomatik sıkıştırılır</small>
                     </div>
-                    <input type="file" id="file-input" accept="image/*" onchange="handleFileSelect(this.files[0])" />
-                    <div class="upload-progress" id="upload-progress">
-                      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-bar-fill"></div></div>
-                      <div class="progress-label" id="progress-label">Yükleniyor…</div>
+                    <input type="file" id="file-input" accept="image/*" multiple onchange="handleFileSelect(this.files)"/>
+                    <div class="upload-progress" id="upload-progress"><div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-bar-fill"></div></div><div class="progress-label" id="progress-label">Yükleniyor…</div></div>
+                  </div>
+                  <div class="img-tab-content" id="tab-url">
+                    <div class="img-url-row">
+                      <input type="url" class="form-input" id="p-img-url-single" placeholder="https://example.com/urun.jpg" onkeydown="if(event.key==='Enter'){event.preventDefault();addUrlImage();}"/>
+                      <button type="button" class="btn btn-primary btn-sm" onclick="addUrlImage()"><i class="fa-solid fa-plus"></i> Ekle</button>
                     </div>
                   </div>
-                  <!-- Önizleme -->
-                  <div class="img-preview" id="img-preview">
-                    <img id="img-preview-img" src="" alt="" />
-                    <div class="placeholder"><i class="fa-regular fa-image"></i><span>Görsel burada önizlenir</span></div>
-                  </div>
-                  <input type="hidden" id="p-img-final" /> <!-- kaydedilecek URL -->
+                  <!-- Önizleme grid -->
+                  <div class="img-preview-grid" id="img-preview-grid"><div class="img-placeholder"><i class="fa-regular fa-image"></i><span>Görsel eklenmedi</span></div></div>
                 </div>
-              </div>
+              </div><!-- /form-grid -->
 
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
-                <span class="text-muted"><i class="fa-solid fa-circle-info" style="margin-right:4px;color:var(--gold);"></i>* işaretli alanlar zorunludur</span>
-                <div style="display:flex;gap:10px;">
-                  <button type="button" class="btn btn-outline" onclick="switchPanel('products',document.querySelector('[data-panel=products]'))"><i class="fa-solid fa-list"></i> Ürün Listesi</button>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:20px;padding-top:18px;border-top:1px solid var(--border);">
+                <span class="text-muted"><i class="fa-solid fa-circle-info" style="margin-right:3px;color:var(--gold);"></i>* zorunlu alanlar</span>
+                <div style="display:flex;gap:8px;">
+                  <button type="button" class="btn btn-outline" onclick="switchPanel('products',document.querySelector('[data-panel=products]'))"><i class="fa-solid fa-list"></i> Liste</button>
                   <button type="submit" class="btn btn-primary" id="submit-product-btn">
                     <span class="btn-label" id="submit-btn-label"><i class="fa-solid fa-cloud-arrow-up"></i> Kaydet</span><span class="spinner"></span>
                   </button>
@@ -429,12 +416,22 @@
         <div class="card">
           <div class="card__header"><div class="card__title"><i class="fa-solid fa-box"></i> Ürün Listesi</div>
             <div class="toolbar">
-              <div class="search-input-wrap"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="search-input" placeholder="Ürün ara…" oninput="filterProducts(this.value)" /></div>
-              <div class="select-wrap" style="min-width:130px;"><select class="form-select" style="padding:9px 28px 9px 12px;font-size:12px;" onchange="filterByCategory2(this.value)" id="cat-filter-select"><option value="">Tüm Kategoriler</option></select></div>
-              <button class="btn btn-primary btn-sm" onclick="switchPanel('add-product',document.querySelector('[data-panel=add-product]'))"><i class="fa-solid fa-plus"></i> Yeni Ürün</button>
+              <div class="search-input-wrap"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="search-input" placeholder="Ürün ara…" oninput="filterProducts(this.value)"/></div>
+              <div class="select-wrap" style="min-width:120px;"><select class="form-select" style="padding:7px 26px 7px 10px;font-size:11px;" onchange="filterByCategory2(this.value)" id="cat-filter-select"><option value="">Tüm Kategoriler</option></select></div>
+              <button class="btn btn-primary btn-sm" onclick="switchPanel('add-product',document.querySelector('[data-panel=add-product]'))"><i class="fa-solid fa-plus"></i> Yeni</button>
             </div>
           </div>
-          <div class="table-wrap"><table><thead><tr><th>Ürün</th><th>Kategori</th><th>Fiyat</th><th>İndirimli</th><th>Stok</th><th style="text-align:right;">İşlem</th></tr></thead><tbody id="products-body"><tr><td colspan="6" style="padding:40px;text-align:center;color:var(--text-3);"><i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i>Yükleniyor…</td></tr></tbody></table></div>
+          <div class="table-wrap"><table><thead><tr><th>Ürün</th><th>Kategori</th><th>Fiyat</th><th>İndirimli</th><th>Stok</th><th style="text-align:right;">İşlem</th></tr></thead><tbody id="products-body"><tr><td colspan="6" style="padding:36px;text-align:center;color:var(--text-3);"><i class="fa-solid fa-spinner fa-spin" style="margin-right:5px;"></i>Yükleniyor…</td></tr></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- SİPARİŞLER -->
+      <section class="panel" id="panel-orders">
+        <div class="card">
+          <div class="card__header"><div class="card__title"><i class="fa-solid fa-bag-shopping"></i> Siparişler</div>
+            <button class="btn btn-ghost btn-sm" onclick="loadOrders()"><i class="fa-solid fa-rotate-right"></i> Yenile</button>
+          </div>
+          <div class="table-wrap"><table><thead><tr><th>Sipariş No</th><th>Müşteri</th><th>Ürünler</th><th>Toplam</th><th>Ödeme</th><th>Durum</th><th style="text-align:right;">İşlem</th></tr></thead><tbody id="orders-body"><tr><td colspan="7" style="padding:36px;text-align:center;color:var(--text-3);"><i class="fa-solid fa-spinner fa-spin" style="margin-right:5px;"></i>Yükleniyor…</td></tr></tbody></table></div>
         </div>
       </section>
 
@@ -448,7 +445,7 @@
               <button class="btn btn-ghost btn-sm" onclick="filterComments('approved',this)"><i class="fa-solid fa-circle-check" style="color:var(--green);"></i> Onaylı</button>
             </div>
           </div>
-          <div class="card__body"><div class="comment-list" id="comment-list"><div style="text-align:center;padding:40px;color:var(--text-3);"><i class="fa-solid fa-spinner fa-spin" style="font-size:22px;margin-bottom:10px;display:block;"></i>Yükleniyor…</div></div></div>
+          <div class="card__body"><div class="comment-list" id="comment-list"><div style="text-align:center;padding:36px;color:var(--text-3);"><i class="fa-solid fa-spinner fa-spin" style="font-size:20px;margin-bottom:9px;display:block;"></i>Yükleniyor…</div></div></div>
         </div>
       </section>
     </div>
@@ -457,7 +454,7 @@
 
 <div class="confirm-overlay" id="confirm-overlay">
   <div class="confirm-box">
-    <div class="confirm-icon"><i class="fa-solid fa-trash"></i></div>
+    <div class="confirm-icon" id="confirm-icon"><i class="fa-solid fa-trash"></i></div>
     <h3 id="confirm-title">Silmek istediğinize emin misiniz?</h3>
     <p id="confirm-desc">Bu işlem geri alınamaz.</p>
     <div class="confirm-actions"><button class="btn btn-outline" onclick="closeConfirm()">Vazgeç</button><button class="btn btn-danger" id="confirm-ok-btn">Evet, Sil</button></div>
