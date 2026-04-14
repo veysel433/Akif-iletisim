@@ -112,10 +112,10 @@ function updateSidebarCategories() {
 }
 function onCategoryChange(val) {
   if (val === '__new__') {
-    document.getElementById('new-cat-wrap').classList.add('visible');
+    document.getElementById('new-cat-wrap').classList.remove('hidden');
     document.getElementById('p-category').value = '';
     document.getElementById('new-cat-input').focus();
-  } else { document.getElementById('new-cat-wrap').classList.remove('visible'); }
+  } else { document.getElementById('new-cat-wrap').classList.add('hidden'); }
 }
 async function addCustomCategory() {
   var name = document.getElementById('new-cat-input').value.trim();
@@ -126,12 +126,12 @@ async function addCustomCategory() {
     allCategories.push({ id:ref.id, name:name });
     buildCategoryOptions(); updateSidebarCategories();
     document.getElementById('p-category').value = name;
-    document.getElementById('new-cat-wrap').classList.remove('visible');
+    document.getElementById('new-cat-wrap').classList.add('hidden');
     document.getElementById('new-cat-input').value = '';
     showToast('"'+name+'" kategorisi eklendi.','success');
   } catch(err){ showToast('Kategori kaydedilemedi: '+err.message,'error'); }
 }
-function cancelNewCategory() { document.getElementById('new-cat-wrap').classList.remove('visible'); document.getElementById('p-category').value=''; document.getElementById('new-cat-input').value=''; }
+function cancelNewCategory() { document.getElementById('new-cat-wrap').classList.add('hidden'); document.getElementById('p-category').value=''; document.getElementById('new-cat-input').value=''; }
 
 /* ── GÖRSEL YÜKLEME — Firebase Storage ── */
 function switchImgTab(tab, el) {
@@ -365,7 +365,7 @@ function resetProductForm() {
   document.getElementById('discount-preview').style.display  = 'none';
   document.getElementById('form-panel-title').textContent    = 'Yeni Ürün Ekle';
   document.getElementById('submit-btn-label').innerHTML      = '<i class="fa-solid fa-cloud-arrow-up"></i> Kaydet';
-  document.getElementById('new-cat-wrap').classList.remove('visible');
+  document.getElementById('new-cat-wrap').classList.add('hidden');
   document.getElementById('upload-progress').style.display   = 'none';
   document.querySelectorAll('#stock-toggle .toggle-option').forEach(function(b){ b.classList.remove('active-green','active-red'); });
   document.querySelector('[data-value="instock"]').classList.add('active-green');
@@ -603,7 +603,12 @@ function openConfirm(title,desc,onConfirm) {
   document.getElementById('confirm-desc').textContent=desc;
   document.getElementById('confirm-overlay').classList.add('open');
   confirmCallback=onConfirm;
-  document.getElementById('confirm-ok-btn').onclick=function(){ closeConfirm(); if(confirmCallback)confirmCallback(); };
+  document.getElementById('confirm-ok-btn').onclick=function(){
+    // Callback closeConfirm içinde null'landığı için önce yakalıyoruz.
+    var cb = confirmCallback;
+    closeConfirm();
+    if (cb) cb();
+  };
 }
 function closeConfirm(){ document.getElementById('confirm-overlay').classList.remove('open'); confirmCallback=null; }
 document.getElementById('confirm-overlay').addEventListener('click',function(e){ if(e.target===this) closeConfirm(); });
