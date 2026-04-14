@@ -528,8 +528,8 @@ function renderOrdersTable(orders) {
     var itemCount  = Array.isArray(d.items) ? d.items.reduce(function(s,i){ return s+(i.qty||1); },0) : '—';
     var custName   = (d.customer&&d.customer.name)||'—';
     var custPhone  = (d.customer&&d.customer.phone)||'';
-    // WhatsApp linki müşteri numarasına, yoksa admin numarasına
-    var targetPhone = custPhone ? custPhone.replace(/\D/g,'') : WA_NUMBER;
+    // WhatsApp linki müşteri numarasına, geçersizse admin numarasına
+    var targetPhone = normalizeTrPhone(custPhone) || WA_NUMBER;
     var waMsg = encodeURIComponent('Merhaba '+custName+', #'+id.slice(-8).toUpperCase()+' numaralı siparişinizle ilgili bilgi vermek istedik.');
     return '<tr>'+
       '<td style="font-size:11px;font-weight:600;font-family:monospace;">#'+id.slice(-8).toUpperCase()+'</td>'+
@@ -623,4 +623,41 @@ function showToast(msg,type) {
 /* ── UTILS ── */
 function fmt(num){ return Number(num||0).toLocaleString('tr-TR',{style:'currency',currency:'TRY',minimumFractionDigits:2}); }
 function escHtml(s){ return String(s!==null&&s!==undefined?s:'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function normalizeTrPhone(raw){
+  var digits = String(raw||'').replace(/\D/g,'');
+  if (!digits) return '';
+  if (digits.length===11 && digits[0]==='0') return '90'+digits.slice(1);
+  if (digits.length===10 && digits[0]==='5') return '90'+digits;
+  if (digits.length===12 && digits.slice(0,2)==='90') return digits;
+  return '';
+}
 function escJs(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded', function(){
+  var form = document.getElementById('product-form');
+  if (form) form.addEventListener('submit', handleProductSubmit);
+
+  var pPrice = document.getElementById('p-price');
+  var pSale  = document.getElementById('p-sale-price');
+  if (pPrice) pPrice.addEventListener('input', updateDiscountBadge);
+  if (pSale)  pSale.addEventListener('input', updateDiscountBadge);
+
+  var fi = document.getElementById('file-input');
+  if (fi) fi.addEventListener('change', function(e){ handleFileSelect(e.target.files); });
+
+  var dz = document.getElementById('file-drop-zone');
+  if (dz) {
+    dz.addEventListener('dragover', handleDragOver);
+    dz.addEventListener('dragleave', handleDragLeave);
+    dz.addEventListener('drop', handleDrop);
+  }
+
+  var sidebarBtn = document.getElementById('sidebar-toggle');
+  if (sidebarBtn) sidebarBtn.addEventListener('click', toggleSidebar);
+
+  var stockBtn = document.querySelector('[data-value="instock"]');
+  if (stockBtn) setStock('instock', stockBtn);
+
+  renderImagePreviews();
+  switchPanel('dashboard', document.querySelector('.nav-item[data-panel="dashboard"]'));
+});

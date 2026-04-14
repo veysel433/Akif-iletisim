@@ -2,17 +2,172 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Panel — Akif İletişim</title>
-  <!-- ... stil aynı, sadece tablo başlığına "Sil" sütunu ekleyin -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
   <style>
-    /* (Önceki stil aynen korunmuştur, sadece tablo başlığına 8. sütun eklendi) */
-    /* ... */
+    :root{--bg:#0f1115;--panel:#171b22;--line:#2a303a;--text:#e7ecf5;--muted:#9aa4b2;--gold:#c9a84c;--red:#f87171;--green:#4ade80}
+    *{box-sizing:border-box} body{margin:0;font-family:Poppins,sans-serif;background:var(--bg);color:var(--text)}
+    .hidden{display:none!important}.app{display:flex;min-height:100vh}
+    .sidebar{width:240px;background:#131820;border-right:1px solid var(--line);padding:16px}
+    .main{flex:1;padding:18px} .top{display:flex;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .nav-item{display:block;width:100%;padding:10px 12px;margin-bottom:8px;border:1px solid var(--line);background:#1b222c;color:var(--text);border-radius:10px;text-align:left;cursor:pointer}
+    .nav-item.active{border-color:var(--gold)}
+    .panel{display:none}.panel.active{display:block}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+    input,textarea,select,button{font-family:inherit}
+    input,textarea,select{width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:#0f141c;color:var(--text)}
+    .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .btn{padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:#1b222c;color:var(--text);cursor:pointer}
+    .btn-primary{background:linear-gradient(135deg,var(--gold),#e0c06b);color:#111;border:none}
+    .btn-danger{background:#3a1d23;border-color:#5b2731;color:#fecaca}.btn-xs{padding:6px 8px;font-size:12px}
+    .table{width:100%;border-collapse:collapse}.table th,.table td{padding:10px;border-bottom:1px solid var(--line);font-size:13px}
+    .badge{padding:2px 8px;border-radius:999px;font-size:11px}.badge-amber{background:#3b3017;color:#fcd34d}.badge-gold{background:#3b3218;color:#f5d67a}.badge-green{background:#173925;color:#86efac}.badge-red{background:#3b1720;color:#fca5a5}
+    #auth-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:20}
+    .auth-card{width:min(420px,94vw);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+    #toast-container{position:fixed;right:14px;bottom:14px;display:flex;flex-direction:column;gap:8px;z-index:40}
+    .toast{background:#111923;border:1px solid var(--line);padding:9px 11px;border-radius:8px}
+    #confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:30}
+    #confirm-overlay.open{display:flex}
+    .modal{width:min(520px,94vw);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+    .img-tab.active{border-color:var(--gold)}
+    .img-tab-content{display:none}.img-tab-content.active{display:block}
+    .img-preview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
+    .img-thumb{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d1218}
+    .img-thumb img{width:100%;height:90px;object-fit:cover;display:block}
+    .img-thumb-remove{position:absolute;right:4px;top:4px;background:#0008;color:#fff;border:none;border-radius:999px;width:24px;height:24px}
+    .img-thumb-actions{display:flex;gap:6px;padding:6px}
+    #file-drop-zone{border:1px dashed var(--line);padding:16px;border-radius:10px;text-align:center;color:var(--muted)}
+    @media(max-width:900px){.sidebar{display:none}.row{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
-<!-- ... -->
-                  <!-- SİPARİŞLER TABLOSU BAŞLIĞI -->
-                  <table><thead><tr><th>Sipariş No</th><th>Müşteri</th><th>Ürünler</th><th>Toplam</th><th>Ödeme</th><th>Durum</th><th style="text-align:right;">İşlem</th></tr></thead>
-                  <!-- NOT: admin.js içinde renderOrdersTable 8 sütun oluşturacak şekilde güncellendi -->
-<!-- ... -->
+  <div id="auth-overlay">
+    <div class="auth-card">
+      <h3>Admin Giriş</h3>
+      <div id="auth-error" class="hidden"><span id="auth-error-text"></span></div>
+      <div class="row" style="grid-template-columns:1fr;">
+        <input id="login-email" type="email" placeholder="E-posta"/>
+        <div style="position:relative"><input id="login-password" type="password" placeholder="Şifre"/><button id="pw-eye" onclick="togglePw()" class="btn" style="position:absolute;right:4px;top:4px">👁</button></div>
+      </div>
+      <button id="login-btn" class="btn btn-primary" onclick="adminLogin()" style="margin-top:10px;width:100%">Giriş Yap</button>
+    </div>
+  </div>
+
+  <div id="app" class="app" style="display:none;">
+    <aside id="sidebar" class="sidebar">
+      <h3>Akif Admin</h3>
+      <div id="user-email-display" style="font-size:12px;color:var(--muted)"></div>
+      <div id="user-initial" class="hidden"></div>
+      <button id="sidebar-toggle" class="btn hidden">☰</button>
+      <button class="nav-item active" data-panel="dashboard" onclick="switchPanel('dashboard',this)">Dashboard</button>
+      <button class="nav-item" data-panel="add-product" onclick="switchPanel('add-product',this)">Ürün Ekle</button>
+      <button class="nav-item" data-panel="products" onclick="switchPanel('products',this)">Ürünler <span id="nav-product-count">0</span></button>
+      <button class="nav-item" data-panel="orders" onclick="switchPanel('orders',this)">Siparişler <span id="nav-order-count">0</span></button>
+      <div id="nav-cat-list"></div>
+      <button class="btn" onclick="adminLogout()">Çıkış</button>
+    </aside>
+
+    <main class="main">
+      <div class="top">
+        <div>
+          <h2 id="page-title">Genel Bakış</h2>
+          <div id="breadcrumb-current" style="font-size:12px;color:var(--muted)">Dashboard</div>
+        </div>
+      </div>
+
+      <section class="panel active" id="panel-dashboard">
+        <div class="row">
+          <div class="card">Ürün: <b id="stat-products">0</b></div>
+          <div class="card">Kampanya: <b id="stat-sale">0</b></div>
+          <div class="card">Sipariş: <b id="stat-orders">0</b></div>
+        </div>
+        <div class="card"><table class="table"><tbody id="recent-products-body"></tbody></table></div>
+      </section>
+
+      <section class="panel" id="panel-add-product">
+        <div class="card">
+          <h3 id="form-panel-title">Ürün Ekle</h3>
+          <form id="product-form">
+            <input id="p-edit-id" type="hidden"/>
+            <div class="row">
+              <input id="p-name" placeholder="Ürün adı"/>
+              <select id="p-category" onchange="onCategoryChange(this.value)"></select>
+            </div>
+            <div id="new-cat-wrap" class="hidden" style="margin-top:10px">
+              <div class="row"><input id="new-cat-input" placeholder="Yeni kategori"/><button class="btn" type="button" onclick="addCustomCategory()">Ekle</button></div>
+            </div>
+            <div class="row" style="margin-top:10px">
+              <input id="p-price" type="number" placeholder="Fiyat"/>
+              <input id="p-sale-price" type="number" placeholder="İndirimli fiyat"/>
+            </div>
+            <div class="row" style="margin-top:10px">
+              <input id="p-stock" type="number" placeholder="Stok"/>
+              <div id="stock-toggle"><button type="button" class="toggle-option" data-value="instock">Stokta</button></div>
+            </div>
+            <textarea id="p-desc" placeholder="Açıklama" style="margin-top:10px"></textarea>
+
+            <div style="margin-top:12px" class="card">
+              <div style="display:flex;gap:8px;margin-bottom:8px">
+                <button type="button" class="btn img-tab active" onclick="switchImgTab('file',this)">Dosya</button>
+                <button type="button" class="btn img-tab" onclick="switchImgTab('url',this)">URL</button>
+              </div>
+              <div id="tab-file" class="img-tab-content active">
+                <div id="file-drop-zone">Dosya sürükle-bırak veya seçin<input id="file-input" type="file" accept="image/*" multiple style="margin-top:8px"/></div>
+                <div id="upload-progress" class="hidden"><div id="progress-label"></div><div style="height:6px;background:#111;border:1px solid var(--line)"><div id="progress-bar-fill" style="height:100%;width:0;background:var(--gold)"></div></div></div>
+              </div>
+              <div id="tab-url" class="img-tab-content">
+                <div class="row"><input id="p-img-url-single" placeholder="https://..."/><button type="button" class="btn" onclick="addUrlImage()">URL Ekle</button></div>
+              </div>
+              <div id="img-preview-grid" class="img-preview-grid"></div>
+            </div>
+
+            <div class="row" style="margin-top:10px;grid-template-columns:1fr 1fr 1fr;">
+              <div>Eski Fiyat Önizleme: <span id="preview-old-price">—</span></div>
+              <div>İndirim Önizleme: <span id="preview-sale-price">—</span></div>
+              <div>Yüzde: <span id="preview-pct">—</span></div>
+            </div>
+            <button id="submit-product-btn" class="btn btn-primary" style="margin-top:12px"><span id="submit-btn-label">Kaydet</span></button>
+          </form>
+          <div id="discount-preview" class="hidden"></div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-products">
+        <div class="card"><select id="cat-filter-select" onchange="filterByCategory2(this.value)"></select></div>
+        <div class="card"><table class="table"><tbody id="products-body"></tbody></table></div>
+      </section>
+
+      <section class="panel" id="panel-orders">
+        <div class="card">
+          <table class="table">
+            <thead><tr><th>Sipariş No</th><th>Müşteri</th><th>Ürünler</th><th>Toplam</th><th>Ödeme</th><th>Durum</th><th style="text-align:right">İşlem</th></tr></thead>
+            <tbody id="orders-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="confirm-overlay">
+    <div class="modal">
+      <div id="confirm-icon"><i class="fa-solid fa-circle-question"></i></div>
+      <h3 id="confirm-title">Onay</h3>
+      <p id="confirm-desc"></p>
+      <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn" onclick="closeConfirm()">Vazgeç</button><button id="confirm-ok-btn" class="btn btn-primary">Tamam</button></div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/heic2any/dist/heic2any.min.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
