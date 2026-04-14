@@ -331,6 +331,10 @@ function bindOrderQuery(sourceKey, query){
     renderMergedOrders();
   },function(err){
     console.error('Order query error ('+sourceKey+'):', err.message);
+    var listEl=document.getElementById('orders-list');
+    if(listEl){
+      listEl.innerHTML='<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><h3>Siparişler yüklenemedi</h3><p>'+esc(err.message||'Bilinmeyen hata')+'</p></div>';
+    }
   });
   orderUnsubs.push(unsub);
 }
@@ -360,10 +364,10 @@ auth.onAuthStateChanged(function(user){
   }
 
   /* Sipariş sorgular */
-  bindOrderQuery('uid', db.collection('orders').where('userId','==',user.uid).orderBy('createdAt','desc'));
+  bindOrderQuery('uid', db.collection('orders').where('userId','==',user.uid));
   if(user.email){
-    bindOrderQuery('email', db.collection('orders').where('userEmail','==',user.email).orderBy('createdAt','desc'));
-    bindOrderQuery('customerEmail', db.collection('orders').where('customer.email','==',user.email).orderBy('createdAt','desc'));
+    bindOrderQuery('email', db.collection('orders').where('userEmail','==',user.email));
+    bindOrderQuery('customerEmail', db.collection('orders').where('customer.email','==',user.email));
   }
 });
 </script>
