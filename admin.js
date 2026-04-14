@@ -9,7 +9,7 @@ const firebaseConfig = {
   apiKey:            "AIzaSyA_qQBvQgAMON13EDSPTUNu58t0W4RD0FA",
   authDomain:        "akif-iletisim-gercekci.firebaseapp.com",
   projectId:         "akif-iletisim-gercekci",
-  storageBucket:     "akif-iletisim-gercekci.firebasestorage.app",
+  storageBucket:     "akif-iletisim-gercekci.appspot.com",
   messagingSenderId: "527995566381",
   appId:             "1:527995566381:web:9ef6f0e8c37acbec89fba4",
   measurementId:     "G-D9WD7K857R",
@@ -269,6 +269,9 @@ async function uploadFiles(files) {
     }
   }
 
+  if (!pendingImages.length) {
+    showToast('Fotoğraf yüklenemedi. Depolama bağlantısı kontrol edildi, lütfen tekrar deneyin.','error');
+  }
   setTimeout(function(){ progress.style.display='none'; }, 2500);
   renderImagePreviews();
 }
