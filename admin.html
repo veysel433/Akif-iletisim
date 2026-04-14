@@ -9,13 +9,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
   <style>
-    :root{--bg:#0f1115;--panel:#171b22;--line:#2a303a;--text:#e7ecf5;--muted:#9aa4b2;--gold:#c9a84c;--red:#f87171;--green:#4ade80;--text-2:#9aa4b2;--text-3:#7e8896;--surface-3:#0f141c}
+    :root{--bg:#0b0d12;--panel:#121722;--line:#252d3a;--text:#f1f4fb;--muted:#9ca7b8;--gold:#d7be73;--red:#f87171;--green:#34d399;--text-2:#9ca7b8;--text-3:#738095;--surface-3:#101521}
     *{box-sizing:border-box}
-    body{margin:0;font-family:Poppins,sans-serif;line-height:1.45;background:radial-gradient(1200px 600px at -10% -20%,rgba(201,168,76,.10),transparent 60%),radial-gradient(900px 500px at 110% -10%,rgba(78,138,255,.08),transparent 55%),var(--bg);color:var(--text)}
-    body::before{content:'';position:fixed;inset:-20% -10%;z-index:-1;background:conic-gradient(from 90deg at 30% 30%,rgba(201,168,76,.08),rgba(78,138,255,.04),rgba(201,168,76,.08));filter:blur(50px);animation:aurora 16s linear infinite}
+    body{margin:0;font-family:Poppins,sans-serif;line-height:1.45;background:radial-gradient(900px 500px at 0% -10%,rgba(215,190,115,.14),transparent 62%),radial-gradient(900px 500px at 100% -10%,rgba(88,114,181,.12),transparent 58%),var(--bg);color:var(--text)}
+    body::before{content:'';position:fixed;inset:-20% -10%;z-index:-1;background:conic-gradient(from 120deg at 35% 28%,rgba(215,190,115,.09),rgba(109,134,196,.05),rgba(215,190,115,.08));filter:blur(56px);animation:aurora 18s linear infinite}
     @keyframes aurora{0%{transform:translateX(-3%) translateY(0)}50%{transform:translateX(3%) translateY(2%)}100%{transform:translateX(-3%) translateY(0)}}
     .hidden{display:none!important}.app{display:flex;min-height:100vh}
-    .sidebar{width:250px;background:linear-gradient(180deg,#131820,#11161e);border-right:1px solid var(--line);padding:16px;box-shadow:inset -1px 0 0 rgba(255,255,255,.02)}
+    .sidebar{width:250px;background:linear-gradient(180deg,#101521,#0d121c);border-right:1px solid var(--line);padding:16px;box-shadow:inset -1px 0 0 rgba(255,255,255,.02)}
     .main{flex:1;padding:22px;max-width:calc(100vw - 250px)}
     .top{display:flex;justify-content:space-between;gap:12px;margin-bottom:16px}
     #page-title{margin:0;font-size:30px;line-height:1.08;letter-spacing:-.03em}
@@ -23,12 +23,13 @@
     .nav-item:hover{border-color:#3a4656;background:#1f2732}
     .nav-item.active{border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,168,76,.12) inset}
     .panel{display:none}.panel.active{display:block}
-    .card{background:rgba(23,27,34,.94);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:0 8px 24px rgba(0,0,0,.22)}
+    .card{background:linear-gradient(180deg,rgba(19,25,37,.96),rgba(17,22,32,.96));border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:0 10px 28px rgba(0,0,0,.26)}
     input,textarea,select,button{font-family:inherit}
-    input,textarea,select{width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:#0f141c;color:var(--text)}
+    input,textarea,select{width:100%;padding:11px 12px;border-radius:10px;border:1px solid #2a3445;background:#171f2b;color:var(--text)}
+    input::placeholder,textarea::placeholder{color:#7f8ca0}
     .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-    .btn{padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:#1b222c;color:var(--text);cursor:pointer}
-    .btn-primary{background:linear-gradient(135deg,var(--gold),#e0c06b);color:#111;border:none}
+    .btn{padding:9px 12px;border-radius:10px;border:1px solid #2a3445;background:#1a2230;color:var(--text);cursor:pointer}
+    .btn-primary{background:linear-gradient(135deg,var(--gold),#e9d38f);color:#111;border:none;font-weight:700;box-shadow:0 8px 24px rgba(215,190,115,.25)}
     .btn-ghost{background:#121820}
     .btn-danger{background:#3a1d23;border-color:#5b2731;color:#fecaca}.btn-xs{padding:6px 8px;font-size:12px}
     .td-actions{display:flex;align-items:center;gap:8px}
@@ -39,14 +40,16 @@
     .product-thumb{width:42px;height:42px;object-fit:cover;border-radius:8px;border:1px solid var(--line);background:#0d1218}
     .table-wrap{overflow:auto;border-radius:10px}
     .table{width:100%;border-collapse:collapse;table-layout:auto}
-    .table th,.table td{padding:10px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top}
-    .table th{font-size:12px;letter-spacing:.02em;color:var(--text-2);white-space:nowrap}
+    .table th,.table td{padding:12px 10px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top}
+    .table th{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:#8b97ab;white-space:nowrap}
     .table td{word-break:normal;line-height:1.45}
+    .table tbody tr:hover{background:rgba(255,255,255,.015)}
     #panel-orders .table{min-width:980px}
     #panel-products .table{min-width:760px}
     .badge{padding:2px 8px;border-radius:999px;font-size:11px}.badge-amber{background:#3b3017;color:#fcd34d}.badge-gold{background:#3b3218;color:#f5d67a}.badge-green{background:#173925;color:#86efac}.badge-red{background:#3b1720;color:#fca5a5}
     #auth-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:20}
-    .auth-card{width:min(420px,94vw);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+    .auth-card{width:min(520px,94vw);background:linear-gradient(180deg,#10141e,#0e131b);border:1px solid var(--line);border-radius:22px;padding:28px;box-shadow:0 30px 70px rgba(0,0,0,.45)}
+    .auth-card h3{font-size:clamp(28px,6vw,42px);line-height:1;letter-spacing:-.03em;margin:2px 0 20px}
     #toast-container{position:fixed;right:14px;bottom:14px;display:flex;flex-direction:column;gap:8px;z-index:40}
     .toast{background:#111923;border:1px solid var(--line);padding:9px 11px;border-radius:8px}
     #confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:30}
