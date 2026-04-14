@@ -531,12 +531,14 @@ async function placeOrder() {
       name:    document.getElementById('co-name').value.trim(),
       phone:   document.getElementById('co-phone').value.trim(),
       address: document.getElementById('co-address').value.trim(),
+      email:   currentUser && currentUser.email ? currentUser.email : '',
     },
     items: cart.map(function(item){ return { id:item.id, name:item.name, price:item.price, qty:item.qty }; }),
     total:   cart.reduce(function(s,c){ return s+c.price*c.qty; },0),
     payment: 'whatsapp_form',
     status:  'pending',
     userId:  currentUser ? currentUser.uid : null,
+    userEmail: currentUser && currentUser.email ? currentUser.email : '',
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
   };
 

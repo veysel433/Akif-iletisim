@@ -44,6 +44,8 @@ const firebaseConfig={apiKey:"AIzaSyA_qQBvQgAMON13EDSPTUNu58t0W4RD0FA",authDomai
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth();
 const db=firebase.firestore();
+var orderUnsubs=[];
+var orderDocsBySource={uid:[],email:[],customerEmail:[]};
 
 function fmt(n){return Number(n||0).toLocaleString('tr-TR',{style:'currency',currency:'TRY'})}
 function statusLabel(s){
@@ -51,23 +53,54 @@ function statusLabel(s){
   return '<span class="status '+(s||'pending')+'">'+(map[s]||'Bekliyor')+'</span>';
 }
 
+function renderMergedOrders(){
+  var byId={};
+  ['uid','email','customerEmail'].forEach(function(k){
+    (orderDocsBySource[k]||[]).forEach(function(doc){ byId[doc.id]=doc; });
+  });
+  var docs=Object.keys(byId).map(function(id){ return byId[id]; }).sort(function(a,b){
+    var ta = a.data().createdAt && a.data().createdAt.seconds ? a.data().createdAt.seconds : 0;
+    var tb = b.data().createdAt && b.data().createdAt.seconds ? b.data().createdAt.seconds : 0;
+    return tb - ta;
+  });
+  var rows=docs.map(function(doc){
+    var d=doc.data();
+    var itemCount=Array.isArray(d.items)?d.items.reduce(function(t,i){return t+(i.qty||1)},0):0;
+    var date=d.createdAt&&d.createdAt.toDate?d.createdAt.toDate().toLocaleString('tr-TR'):'—';
+    return '<tr><td>#'+doc.id.slice(-8).toUpperCase()+'</td><td class="muted">'+date+'</td><td>'+itemCount+' ürün</td><td>'+fmt(d.total)+'</td><td>'+statusLabel(d.status)+'</td></tr>';
+  }).join('');
+  document.getElementById('orders-body').innerHTML = rows || '<tr><td colspan="5" class="muted">Henüz sipariş yok.</td></tr>';
+}
+
+function bindOrderQuery(sourceKey, query){
+  var unsub = query.onSnapshot(function(snap){
+    orderDocsBySource[sourceKey]=snap.docs;
+    renderMergedOrders();
+  }, function(err){
+    document.getElementById('orders-body').innerHTML = '<tr><td colspan="5" class="muted">Siparişler yüklenemedi: '+err.message+'</td></tr>';
+  });
+  orderUnsubs.push(unsub);
+}
+
 auth.onAuthStateChanged(function(user){
+  orderUnsubs.forEach(function(fn){ try{fn();}catch(e){} });
+  orderUnsubs=[];
+  orderDocsBySource={uid:[],email:[],customerEmail:[]};
+
   if(!user){
     document.getElementById('auth-note').style.display='block';
     document.getElementById('orders-card').style.display='none';
     return;
   }
+
   document.getElementById('auth-note').style.display='none';
   document.getElementById('orders-card').style.display='block';
-  db.collection('orders').where('userId','==',user.uid).orderBy('createdAt','desc').onSnapshot(function(snap){
-    var rows=snap.docs.map(function(doc){
-      var d=doc.data();
-      var itemCount=Array.isArray(d.items)?d.items.reduce(function(t,i){return t+(i.qty||1)},0):0;
-      var date=d.createdAt&&d.createdAt.toDate?d.createdAt.toDate().toLocaleString('tr-TR'):'—';
-      return '<tr><td>#'+doc.id.slice(-8).toUpperCase()+'</td><td class="muted">'+date+'</td><td>'+itemCount+' ürün</td><td>'+fmt(d.total)+'</td><td>'+statusLabel(d.status)+'</td></tr>';
-    }).join('');
-    document.getElementById('orders-body').innerHTML = rows || '<tr><td colspan="5" class="muted">Henüz sipariş yok.</td></tr>';
-  });
+
+  bindOrderQuery('uid', db.collection('orders').where('userId','==',user.uid));
+  if (user.email) {
+    bindOrderQuery('email', db.collection('orders').where('userEmail','==',user.email));
+    bindOrderQuery('customerEmail', db.collection('orders').where('customer.email','==',user.email));
+  }
 });
 </script>
 </body>

@@ -327,9 +327,9 @@ async function sendWhatsapp() {
   });
 
   var orderData = {
-    customer:{name:name,phone:phone,address:address},
+    customer:{name:name,phone:phone,address:address,email:(currentUser&&currentUser.email)||''},
     items:cart.map(function(i){return {id:i.id,name:i.name,qty:i.qty,price:i.price};}),
-    total:totalPrice(), status:'pending', payment:'whatsapp_form', userId:currentUser.uid,
+    total:totalPrice(), status:'pending', payment:'whatsapp_form', userId:currentUser.uid, userEmail:(currentUser&&currentUser.email)||'',
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   };
 
