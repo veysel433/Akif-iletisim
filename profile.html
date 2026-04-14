@@ -18,6 +18,21 @@
       font:400 14px/1.6 'Poppins',sans-serif;color:var(--text-1);background:var(--bg);
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{
+      min-height:100vh;
+      background:
+        radial-gradient(1000px 560px at -8% -15%,rgba(201,168,76,.10),transparent 62%),
+        radial-gradient(700px 420px at 110% -10%,rgba(100,145,255,.07),transparent 55%),
+        var(--bg);
+      color:var(--text-1);
+    }
+    body::before{
+      content:"";
+      position:fixed;inset:-20% -10%;z-index:-1;pointer-events:none;
+      background:conic-gradient(from 120deg at 30% 30%,rgba(201,168,76,.07),rgba(100,145,255,.04),rgba(201,168,76,.07));
+      filter:blur(50px);animation:profile-aurora 18s linear infinite;
+    }
+    @keyframes profile-aurora{0%{transform:translateX(-2%)}50%{transform:translateX(2%)}100%{transform:translateX(-2%)}}
     a{color:inherit;text-decoration:none} img{display:block;max-width:100%}
     button{font-family:inherit;cursor:pointer;border:none;background:none}
     ::-webkit-scrollbar{width:4px} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
