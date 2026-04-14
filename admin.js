@@ -40,7 +40,6 @@ auth.onAuthStateChanged(function(user) {
     var email = user.email || 'admin';
     document.getElementById('user-email-display').textContent = email;
     document.getElementById('user-initial').textContent = email[0].toUpperCase();
-    if (window.innerWidth <= 768) document.getElementById('sidebar-toggle').style.display = 'flex';
     initAdmin();
   } else {
     document.getElementById('auth-overlay').style.display = 'flex';
@@ -659,6 +658,8 @@ document.addEventListener('DOMContentLoaded', function(){
 
   var sidebarBtn = document.getElementById('sidebar-toggle');
   if (sidebarBtn) sidebarBtn.addEventListener('click', toggleSidebar);
+  var sidebarMainBtn = document.getElementById('sidebar-toggle-main');
+  if (sidebarMainBtn) sidebarMainBtn.addEventListener('click', toggleSidebar);
 
   var stockBtn = document.querySelector('[data-value="instock"]');
   if (stockBtn) setStock('instock', stockBtn);
