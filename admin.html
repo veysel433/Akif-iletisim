@@ -250,6 +250,10 @@
       #sidebar-toggle{display:flex !important}
     }
     @media(max-width:480px){.stats-grid{grid-template-columns:1fr}}
+
+    .img-thumb-nav{display:flex;gap:2px;margin-top:2px;justify-content:center}
+    .img-thumb-nav button{width:20px;height:20px;border-radius:4px;background:var(--surface-3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-2);font-size:8px;cursor:pointer;transition:all .2s;font-family:inherit}
+    .img-thumb-nav button:hover{background:var(--gold);color:#0a0a0a;border-color:var(--gold)}
   </style>
 </head>
 <body>
@@ -294,8 +298,7 @@
       <div class="nav-cat-list" id="nav-cat-list"></div>
       <div class="nav-section-label">Satış</div>
       <div class="nav-item" data-panel="orders" onclick="switchPanel('orders',this)"><i class="fa-solid fa-bag-shopping"></i> Siparişler <span class="nav-badge" id="nav-order-count">—</span></div>
-      <div class="nav-section-label">Topluluk</div>
-      <div class="nav-item" data-panel="comments" onclick="switchPanel('comments',this)"><i class="fa-solid fa-comments"></i> Yorumlar <span class="nav-badge" id="nav-comment-count">—</span></div>
+      
       <div class="divider" style="margin:6px 0;"></div>
       <div class="nav-item" onclick="window.open('index.html')"><i class="fa-solid fa-arrow-up-right-from-square"></i> Siteye Git</div>
       <div class="nav-item" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket"></i> Çıkış</div>
@@ -327,7 +330,7 @@
         <div class="stats-grid">
           <div class="stat-card"><div class="stat-card__header"><div class="stat-card__label">Toplam Ürün</div><div class="stat-card__icon" style="background:var(--gold-dim);color:var(--gold);"><i class="fa-solid fa-box"></i></div></div><div class="stat-card__value" id="stat-products">—</div><div class="stat-card__sub">Aktif katalog</div></div>
           <div class="stat-card"><div class="stat-card__header"><div class="stat-card__label">Siparişler</div><div class="stat-card__icon" style="background:rgba(74,222,128,.12);color:var(--green);"><i class="fa-solid fa-bag-shopping"></i></div></div><div class="stat-card__value" id="stat-orders">—</div><div class="stat-card__sub">Toplam</div></div>
-          <div class="stat-card"><div class="stat-card__header"><div class="stat-card__label">Bekleyen Yorum</div><div class="stat-card__icon" style="background:var(--amber-dim);color:var(--amber);"><i class="fa-solid fa-clock"></i></div></div><div class="stat-card__value" id="stat-pending">—</div><div class="stat-card__sub">Onay bekliyor</div></div>
+          
           <div class="stat-card"><div class="stat-card__header"><div class="stat-card__label">İndirimli</div><div class="stat-card__icon" style="background:var(--red-dim);color:var(--red);"><i class="fa-solid fa-tag"></i></div></div><div class="stat-card__value" id="stat-sale">—</div><div class="stat-card__sub">Kampanyada</div></div>
         </div>
         <div class="card">
@@ -432,20 +435,6 @@
             <button class="btn btn-ghost btn-sm" onclick="loadOrders()"><i class="fa-solid fa-rotate-right"></i> Yenile</button>
           </div>
           <div class="table-wrap"><table><thead><tr><th>Sipariş No</th><th>Müşteri</th><th>Ürünler</th><th>Toplam</th><th>Ödeme</th><th>Durum</th><th style="text-align:right;">İşlem</th></tr></thead><tbody id="orders-body"><tr><td colspan="7" style="padding:36px;text-align:center;color:var(--text-3);"><i class="fa-solid fa-spinner fa-spin" style="margin-right:5px;"></i>Yükleniyor…</td></tr></tbody></table></div>
-        </div>
-      </section>
-
-      <!-- YORUMLAR -->
-      <section class="panel" id="panel-comments">
-        <div class="card">
-          <div class="card__header"><div class="card__title"><i class="fa-solid fa-comments"></i> Yorum Moderasyonu</div>
-            <div class="toolbar">
-              <button class="btn btn-ghost btn-sm" onclick="filterComments('all',this)">Tümü</button>
-              <button class="btn btn-ghost btn-sm" onclick="filterComments('pending',this)"><i class="fa-solid fa-clock" style="color:var(--amber);"></i> Bekleyen</button>
-              <button class="btn btn-ghost btn-sm" onclick="filterComments('approved',this)"><i class="fa-solid fa-circle-check" style="color:var(--green);"></i> Onaylı</button>
-            </div>
-          </div>
-          <div class="card__body"><div class="comment-list" id="comment-list"><div style="text-align:center;padding:36px;color:var(--text-3);"><i class="fa-solid fa-spinner fa-spin" style="font-size:20px;margin-bottom:9px;display:block;"></i>Yükleniyor…</div></div></div>
         </div>
       </section>
     </div>

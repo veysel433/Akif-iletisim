@@ -1,9 +1,9 @@
 /* ================================================================
-   🔥 AKİF İLETİŞİM — admin.js v4
-   ✅ Çoklu görsel (imageUrls dizisi) + sıkıştırma
-   ✅ Telefon görseli sıkıştırma
-   ✅ Admin yorumları silebilir
-   ✅ Siparişler paneli
+   AKİF İLETİŞİM — admin.js v5
+   ✅ Yorum paneli KALDIRILDI
+   ✅ Firebase Storage fotoğraf yükleme düzeltildi
+   ✅ Çoklu görsel + sıkıştırma
+   ✅ Siparişler — WhatsApp takip
    ✅ Dinamik kategori sidebar
    ================================================================ */
 
@@ -22,14 +22,14 @@ const auth    = firebase.auth();
 const db      = firebase.firestore();
 const storage = firebase.storage();
 
+const WA_NUMBER = '905419705263';
+
 /* ── STATE ── */
 var allProducts   = [];
-var allComments   = [];
 var allCategories = [];
-var commentFilter = 'all';
 var currentPanel  = 'dashboard';
 var confirmCallback = null;
-var activeImgTab  = 'url';
+var activeImgTab  = 'file';
 var pendingImages  = []; // {url, source:'url'|'file'}
 
 var DEFAULT_CATS = ['Telefon','Tablet','Laptop','Aksesuar','Kulaklık','Saat','Tv & Ses Sistemi','Oyun','Diğer'];
@@ -54,7 +54,6 @@ async function initAdmin() {
   await loadCategories();
   loadDashboard();
   loadProducts();
-  loadComments();
   loadOrders();
 }
 
@@ -110,7 +109,7 @@ function updateSidebarCategories() {
   var list = document.getElementById('nav-cat-list');
   if (!list) return;
   list.innerHTML = allCatNames().map(function(cat){
-    return '<div class="nav-cat-item" onclick="switchPanel(\'products\',document.querySelector(\'[data-panel=products]\'));filterByCategory2(\''+escJs(cat)+'\')">'+escHtml(cat)+'</div>';
+    return '<div class="nav-cat-item" onclick="switchPanel(\'products\',document.querySelector(\'[data-panel=products]\')); filterByCategory2(\''+escJs(cat)+'\')">'+escHtml(cat)+'</div>';
   }).join('');
 }
 function onCategoryChange(val) {
@@ -136,7 +135,7 @@ async function addCustomCategory() {
 }
 function cancelNewCategory() { document.getElementById('new-cat-wrap').classList.remove('visible'); document.getElementById('p-category').value=''; document.getElementById('new-cat-input').value=''; }
 
-/* ── GÖRSEL YÜKLEME — Sıkıştırma ile ── */
+/* ── GÖRSEL YÜKLEME — Firebase Storage ── */
 function switchImgTab(tab, el) {
   activeImgTab = tab;
   document.querySelectorAll('.img-tab').forEach(function(b){ b.classList.remove('active'); });
@@ -145,7 +144,6 @@ function switchImgTab(tab, el) {
   document.getElementById('tab-'+tab).classList.add('active');
 }
 
-/* Canvas ile görsel sıkıştırma — telefondan gelen büyük görselleri küçültür */
 function isHeicFile(file) {
   var name = (file && file.name ? file.name : '').toLowerCase();
   var type = (file && file.type ? file.type : '').toLowerCase();
@@ -211,41 +209,73 @@ async function uploadFiles(files) {
   if (files.length + pendingImages.length > 8) {
     showToast('En fazla 8 görsel ekleyebilirsiniz.','error'); return;
   }
+
+  /* Storage erişilebilirlik kontrolü */
+  if (!storage) {
+    showToast('Firebase Storage bağlantısı yok. URL ile ekleyin.','error'); return;
+  }
+
   var progress = document.getElementById('upload-progress');
   var bar      = document.getElementById('progress-bar-fill');
   var lbl      = document.getElementById('progress-label');
   progress.style.display = 'block';
+  bar.style.width = '5%';
 
   for (var i=0; i<files.length; i++) {
     var file = files[i];
     if (file.size > 20 * 1024 * 1024) { showToast(file.name + ' 20MB\'dan büyük, atlandı.','error'); continue; }
     try {
-      lbl.textContent = (i+1)+'/'+files.length+' sıkıştırılıyor…';
-      bar.style.width = '20%';
+      lbl.textContent = (i+1)+'/'+files.length+' hazırlanıyor…';
+      bar.style.width = '15%';
+
       var normalized = await prepareImageFile(file);
       var quality = normalized.size > (8 * 1024 * 1024) ? 0.78 : 0.84;
       var compressed = await compressImage(normalized, 1600, quality);
+
       lbl.textContent = (i+1)+'/'+files.length+' yükleniyor…';
-      var fileName = 'products/' + Date.now() + '_' + i + '.jpg';
-      var ref      = storage.ref().child(fileName);
-      var task     = ref.put(compressed, { contentType:'image/jpeg' });
-      await new Promise(function(resolve, reject) {
-        task.on('state_changed',
-          function(snap){ bar.style.width = Math.round(20 + (snap.bytesTransferred/snap.totalBytes)*70)+'%'; },
-          reject,
-          async function(){ resolve(); }
+      bar.style.width = '30%';
+
+      var fileName = 'products/' + Date.now() + '_' + i + '_' + Math.random().toString(36).slice(2,7) + '.jpg';
+      var storageRef = storage.ref().child(fileName);
+
+      /* Upload with progress */
+      var uploadTask = storageRef.put(compressed, { contentType: 'image/jpeg' });
+
+      var url = await new Promise(function(resolve, reject) {
+        uploadTask.on('state_changed',
+          function(snapshot) {
+            var pct = Math.round(30 + (snapshot.bytesTransferred / snapshot.totalBytes) * 60);
+            bar.style.width = pct + '%';
+            lbl.textContent = (i+1)+'/'+files.length+' yükleniyor… %' + Math.round(snapshot.bytesTransferred/snapshot.totalBytes*100);
+          },
+          function(error) {
+            reject(error);
+          },
+          async function() {
+            try {
+              var downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+              resolve(downloadURL);
+            } catch(e) { reject(e); }
+          }
         );
       });
-      var url = await task.snapshot.ref.getDownloadURL();
-      pendingImages.push({ url:url, source:'file' });
+
+      pendingImages.push({ url: url, source: 'file' });
       bar.style.width = '100%';
+      lbl.textContent = '✓ Yüklendi: ' + pendingImages.length + ' görsel';
+
     } catch(err) {
-      showToast('Yükleme hatası: '+err.message,'error');
+      console.error('Upload error:', err);
+      /* Firebase Storage CORS hatası için özel mesaj */
+      if (err.code === 'storage/unauthorized' || err.message.includes('CORS') || err.message.includes('network')) {
+        showToast('Depolama izni hatası. Firebase Console\'dan Storage kurallarını kontrol edin.','error');
+      } else {
+        showToast('Yükleme hatası: ' + err.message, 'error');
+      }
     }
   }
 
-  lbl.textContent = '✓ '+pendingImages.length+' görsel hazır';
-  setTimeout(function(){ progress.style.display='none'; }, 2000);
+  setTimeout(function(){ progress.style.display='none'; }, 2500);
   renderImagePreviews();
 }
 
@@ -253,10 +283,12 @@ function addUrlImage() {
   var input = document.getElementById('p-img-url-single');
   var url   = (input.value||'').trim();
   if (!url) return;
+  if (!url.startsWith('http')) { showToast('Geçerli bir URL girin (http ile başlamalı).','error'); return; }
   if (pendingImages.length >= 8) { showToast('En fazla 8 görsel ekleyebilirsiniz.','error'); return; }
   pendingImages.push({ url:url, source:'url' });
   input.value = '';
   renderImagePreviews();
+  showToast('Görsel eklendi.','success');
 }
 
 function removeImage(idx) {
@@ -264,10 +296,19 @@ function removeImage(idx) {
   renderImagePreviews();
 }
 
+function moveImage(idx, dir) {
+  var newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= pendingImages.length) return;
+  var temp = pendingImages[idx];
+  pendingImages[idx] = pendingImages[newIdx];
+  pendingImages[newIdx] = temp;
+  renderImagePreviews();
+}
+
 function renderImagePreviews() {
   var container = document.getElementById('img-preview-grid');
   if (!pendingImages.length) {
-    container.innerHTML = '<div class="img-placeholder"><i class="fa-regular fa-image"></i><span>Görsel yok</span></div>';
+    container.innerHTML = '<div class="img-placeholder"><i class="fa-regular fa-image"></i><span>Görsel eklenmedi</span></div>';
     return;
   }
   container.innerHTML = pendingImages.map(function(img, i){
@@ -275,12 +316,16 @@ function renderImagePreviews() {
       '<img class="img-thumb" src="'+escHtml(img.url)+'" alt="" onerror="this.style.background=\'var(--surface-3)\'" />' +
       '<button type="button" class="img-thumb-remove" onclick="removeImage('+i+')" title="Kaldır"><i class="fa-solid fa-xmark"></i></button>' +
       (i===0 ? '<span class="img-thumb-badge">Ana</span>' : '') +
+      '<div class="img-thumb-nav">' +
+        (i>0 ? '<button type="button" onclick="moveImage('+i+',-1)" title="Sola"><i class="fa-solid fa-chevron-left"></i></button>' : '') +
+        (i<pendingImages.length-1 ? '<button type="button" onclick="moveImage('+i+',1)" title="Sağa"><i class="fa-solid fa-chevron-right"></i></button>' : '') +
+      '</div>' +
     '</div>';
   }).join('');
 }
 
 /* ── NAVİGASYON ── */
-var PANEL_TITLES = { 'dashboard':['Genel Bakış','Dashboard'],'add-product':['Ürün Ekle','Katalog'],'products':['Ürün Listesi','Katalog'],'comments':['Yorumlar','Topluluk'],'orders':['Siparişler','Satış'] };
+var PANEL_TITLES = { 'dashboard':['Genel Bakış','Dashboard'],'add-product':['Ürün Ekle','Katalog'],'products':['Ürün Listesi','Katalog'],'orders':['Siparişler','Satış'] };
 function switchPanel(id, navEl) {
   document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
   document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
@@ -296,7 +341,6 @@ function toggleSidebar() { document.getElementById('sidebar').classList.toggle('
 function refreshCurrentPanel() {
   if (currentPanel==='dashboard'){ loadDashboard(); loadProducts(); }
   if (currentPanel==='products')  loadProducts();
-  if (currentPanel==='comments')  loadComments();
   if (currentPanel==='orders')    loadOrders();
   showToast('Yenilendi.','info');
 }
@@ -353,12 +397,12 @@ async function handleProductSubmit(e) {
 
   var imageUrls = pendingImages.map(function(img){ return img.url; });
   var data = {
-    name, category, price,
+    name: name, category: category, price: price,
     salePrice:   salePrice>0 ? salePrice : null,
     discountPct: (salePrice>0&&price>0) ? Math.round((1-salePrice/price)*100) : null,
-    stock, description:desc,
-    imageUrls:   imageUrls,         // dizi
-    imageUrl:    imageUrls[0]||'',  // geriye dönük uyumluluk
+    stock: stock, description: desc,
+    imageUrls:   imageUrls,
+    imageUrl:    imageUrls[0]||'',
     updatedAt:   firebase.firestore.FieldValue.serverTimestamp(),
   };
 
@@ -396,7 +440,6 @@ function editProduct(id) {
   var sb = document.querySelector('[data-value="'+sv+'"]');
   if (sb) setStock(sv,sb);
   updateDiscountBadge();
-  // Görselleri yükle
   var imgs = Array.isArray(d.imageUrls)&&d.imageUrls.length>0 ? d.imageUrls : (d.imageUrl ? [d.imageUrl] : []);
   pendingImages = imgs.map(function(url){ return { url:url, source:'url' }; });
   renderImagePreviews();
@@ -462,74 +505,6 @@ function renderRecentProducts(products) {
 function filterProducts(q){ q=q.toLowerCase(); renderProductsTable(allProducts.filter(function(item){ var d=item.data; return (d.name||'').toLowerCase().includes(q)||(d.category||'').toLowerCase().includes(q); })); }
 function filterByCategory2(cat){ renderProductsTable(cat?allProducts.filter(function(item){return item.data.category===cat;}):allProducts); }
 
-/* ── YORUMLAR ──
-   Google ile giriş yapan kullanıcılar direkt yayınlar (approved)
-   Admin istediği yorumu silebilir (pending veya approved) */
-async function loadComments() {
-  try {
-    var snap = await db.collection('comments').orderBy('createdAt','desc').get();
-    allComments = snap.docs.map(function(doc){ return {id:doc.id,data:doc.data()}; });
-    var pending  = allComments.filter(function(c){ return c.data.status==='pending'; }).length;
-    var approved = allComments.filter(function(c){ return c.data.status==='approved'; }).length;
-    document.getElementById('nav-comment-count').textContent = allComments.length;
-    document.getElementById('stat-pending').textContent  = pending;
-    document.getElementById('stat-approved').textContent = approved;
-    renderComments(allComments, commentFilter);
-  } catch(err) {
-    document.getElementById('comment-list').innerHTML = '<div style="padding:32px;text-align:center;color:var(--red);">Hata: '+escHtml(err.message)+'</div>';
-  }
-}
-
-function renderComments(comments, filter) {
-  filter = filter||'all';
-  var list = document.getElementById('comment-list');
-  var filtered = filter==='all' ? comments : comments.filter(function(c){ return c.data.status===filter; });
-  if (!filtered.length) {
-    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-3);">Yorum yok.</div>'; return;
-  }
-  list.innerHTML = filtered.map(function(item,i){
-    var id=item.id, c=item.data;
-    var initials=(c.author||'K').slice(0,2).toUpperCase();
-    var stars=''; for(var j=0;j<5;j++) stars+='<i class="fa-'+(j<(c.rating||5)?'solid':'regular')+' fa-star"></i>';
-    var dateStr=c.createdAt&&c.createdAt.toDate?c.createdAt.toDate().toLocaleDateString('tr-TR'):'—';
-    var isApproved=c.status==='approved';
-    var sn=escHtml(c.author||'Anonim').replace(/'/g,"\\'");
-    var prodHtml=c.productName?'<span class="comment-product"><i class="fa-solid fa-box" style="margin-right:4px;font-size:10px;"></i>'+escHtml(c.productName)+'</span>':'';
-    var titleHtml=c.title?'<div style="font-size:13px;font-weight:600;margin-bottom:4px;">&ldquo;'+escHtml(c.title)+'&rdquo;</div>':'';
-    /* Onayla butonu sadece pending için, SİL butonu her durumda */
-    var approveBtn = !isApproved ? '<button class="btn btn-success btn-xs" onclick="approveComment(\''+id+'\')"><i class="fa-solid fa-check"></i> Onayla</button>' : '<span class="badge badge-green"><i class="fa-solid fa-circle-check"></i> Yayında</span>';
-    return '<div class="comment-card '+(isApproved?'approved':'pending')+'" style="animation-delay:'+(i*50)+'ms">'+
-      '<div class="comment-avatar">'+initials+'</div>'+
-      '<div class="comment-body">'+
-        '<div class="comment-header"><span class="comment-author">'+escHtml(c.author||'Anonim')+'</span><div class="comment-stars">'+stars+'</div>'+prodHtml+'<span class="comment-date">'+dateStr+'</span></div>'+
-        titleHtml+'<p class="comment-text">'+escHtml(c.text||'')+'</p>'+
-        '<div class="comment-actions">'+approveBtn+
-          '<button class="btn btn-danger btn-xs" onclick="deleteComment(\''+id+'\',\''+sn+'\')"><i class="fa-solid fa-trash"></i> Sil</button>'+
-        '</div>'+
-      '</div></div>';
-  }).join('');
-}
-
-async function approveComment(id) {
-  try { await db.collection('comments').doc(id).update({status:'approved'}); showToast('Yorum onaylandı.','success'); await loadComments(); }
-  catch(err){ showToast('Hata: '+err.message,'error'); }
-}
-
-/* Admin her yorumu silebilir */
-function deleteComment(id, author) {
-  openConfirm('"'+author+'" yorumu silinsin mi?','Bu işlem geri alınamaz.',async function(){
-    try { await db.collection('comments').doc(id).delete(); showToast('Yorum silindi.','success'); await loadComments(); }
-    catch(err){ showToast('Hata: '+err.message,'error'); }
-  });
-}
-
-function filterComments(filter, btn) {
-  commentFilter = filter;
-  document.querySelectorAll('#panel-comments .toolbar .btn').forEach(function(b){ b.style.borderColor='var(--border)';b.style.color='var(--text-2)';b.style.background='var(--surface-2)'; });
-  if(btn){ btn.style.borderColor='var(--gold-border)';btn.style.color='var(--gold)';btn.style.background='var(--gold-dim)'; }
-  renderComments(allComments, filter);
-}
-
 /* ── SİPARİŞLER ── */
 var allOrders = [];
 var ordersUnsub = null;
@@ -538,7 +513,7 @@ function loadOrders() {
   ordersUnsub = db.collection('orders').orderBy('createdAt','desc').onSnapshot(function(snap){
     allOrders = snap.docs.map(function(doc){ return {id:doc.id,data:doc.data()}; });
     renderOrdersTable(allOrders);
-    document.getElementById('nav-order-count').textContent = allOrders.filter(function(o){ return o.data.status==='pending'; }).length;
+    document.getElementById('nav-order-count').textContent = allOrders.filter(function(o){ return o.data.status==='pending'||!o.data.status; }).length;
     document.getElementById('stat-orders').textContent     = allOrders.length;
   }, function(err){
     var body = document.getElementById('orders-body');
@@ -549,23 +524,26 @@ function loadOrders() {
 function renderOrdersTable(orders) {
   var tbody = document.getElementById('orders-body');
   if (!tbody) return;
-  if (!orders.length){ tbody.innerHTML='<tr><td colspan="6" style="padding:40px;text-align:center;color:var(--text-3);">Sipariş yok.</td></tr>'; return; }
+  if (!orders.length){ tbody.innerHTML='<tr><td colspan="7" style="padding:40px;text-align:center;color:var(--text-3);">Sipariş yok.</td></tr>'; return; }
   var statusLabels = { pending:'<span class="badge badge-amber">Bekliyor</span>', processing:'<span class="badge badge-gold">Hazırlanıyor</span>', shipped:'<span class="badge badge-green">Kargoda</span>', completed:'<span class="badge badge-green">Tamamlandı</span>', cancelled:'<span class="badge badge-red">İptal</span>' };
-  var paymentLabels = { kapida_nakit:'Kapıda Nakit', kapida_kart:'Kapıda Kart', havale:'Havale' };
   tbody.innerHTML = orders.map(function(item){
     var id=item.id, d=item.data;
     var dateStr = d.createdAt&&d.createdAt.toDate ? d.createdAt.toDate().toLocaleDateString('tr-TR') : '—';
     var statusHtml = statusLabels[d.status||'pending'] || '<span class="badge badge-amber">Bekliyor</span>';
     var itemCount  = Array.isArray(d.items) ? d.items.reduce(function(s,i){ return s+(i.qty||1); },0) : '—';
+    var custName   = (d.customer&&d.customer.name)||'—';
+    var custPhone  = (d.customer&&d.customer.phone)||'';
+    var waMsg = encodeURIComponent('Merhaba '+custName+', #'+id.slice(-8).toUpperCase()+' numaralı siparişinizle ilgili bilgi vermek istedik.');
     return '<tr>'+
       '<td style="font-size:11px;font-weight:600;font-family:monospace;">#'+id.slice(-8).toUpperCase()+'</td>'+
-      '<td><div style="font-weight:600;">'+escHtml((d.customer&&d.customer.name)||'—')+'</div><div style="font-size:11px;color:var(--text-2);">'+escHtml((d.customer&&d.customer.phone)||'')+'</div></td>'+
+      '<td><div style="font-weight:600;">'+escHtml(custName)+'</div><div style="font-size:11px;color:var(--text-2);">'+escHtml(custPhone)+'</div></td>'+
       '<td>'+itemCount+' ürün</td>'+
       '<td style="font-weight:700;color:var(--gold);">'+fmt(d.total)+'</td>'+
-      '<td>'+escHtml(paymentLabels[d.payment]||d.payment||'—')+'</td>'+
+      '<td><span style="font-size:11px;color:var(--text-2);">WhatsApp</span></td>'+
       '<td>'+statusHtml+'</td>'+
-      '<td><div class="td-actions" style="justify-content:flex-end;">'+
-        '<button class="btn btn-ghost btn-xs" onclick="showOrderDetail(\''+id+'\')"><i class="fa-solid fa-eye"></i></button>'+
+      '<td><div class="td-actions" style="justify-content:flex-end;gap:5px;">'+
+        '<button class="btn btn-ghost btn-xs" onclick="showOrderDetail(\''+id+'\')" title="Detay"><i class="fa-solid fa-eye"></i></button>'+
+        '<a href="https://wa.me/'+WA_NUMBER+'?text='+waMsg+'" target="_blank" class="btn btn-ghost btn-xs" title="WhatsApp\'ta Yaz" style="color:#25d366;"><i class="fa-brands fa-whatsapp"></i></a>'+
         '<div class="select-wrap" style="min-width:110px;">'+
           '<select class="form-select" style="padding:5px 28px 5px 8px;font-size:11px;" onchange="updateOrderStatus(\''+id+'\',this.value)">'+
             '<option value="pending" '+(d.status==='pending'?'selected':'')+'>Bekliyor</option>'+
@@ -582,9 +560,8 @@ function renderOrdersTable(orders) {
 
 async function updateOrderStatus(id, status) {
   try {
-    await db.collection('orders').doc(id).update({ status:status });
-    showToast('Sipariş durumu güncellendi.','success');
-    await loadOrders();
+    await db.collection('orders').doc(id).update({ status:status, updatedAt:firebase.firestore.FieldValue.serverTimestamp() });
+    showToast('Durum güncellendi.','success');
   } catch(err){ showToast('Hata: '+err.message,'error'); }
 }
 
@@ -593,9 +570,10 @@ function showOrderDetail(id) {
   if (!order) return;
   var d = order.data;
   var items = Array.isArray(d.items) ? d.items.map(function(item){ return '• '+item.name+' × '+item.qty+' = '+fmt(item.price*item.qty); }).join('\n') : '—';
+  var addr = d.customer&&d.customer.address ? '\nAdres: '+d.customer.address : '';
   openConfirm(
     'Sipariş #'+id.slice(-8).toUpperCase(),
-    'Müşteri: '+(d.customer&&d.customer.name||'—')+'\nTel: '+(d.customer&&d.customer.phone||'—')+'\nAdres: '+(d.customer&&d.customer.address||'—')+'\n\n'+items+'\n\nToplam: '+fmt(d.total),
+    'Müşteri: '+(d.customer&&d.customer.name||'—')+'\nTel: '+(d.customer&&d.customer.phone||'—')+addr+'\n\n'+items+'\n\nToplam: '+fmt(d.total)+'\nDurum: '+(d.status||'pending'),
     function(){}
   );
   document.getElementById('confirm-ok-btn').textContent = 'Tamam';

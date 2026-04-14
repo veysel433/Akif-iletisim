@@ -33,7 +33,6 @@
     .h-right{display:flex;align-items:center;gap:8px}
     .h-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9px;border:1px solid var(--border);background:var(--surface-2);font-size:12px;font-weight:500;color:var(--text-2);transition:all var(--t);cursor:pointer}
     .h-btn:hover{color:var(--text-1);border-color:var(--text-3)}
-    .h-btn i{font-size:11px}
     .cart-btn{position:relative}
     .cart-badge{position:absolute;top:-4px;right:-4px;width:17px;height:17px;border-radius:50%;background:var(--gold);color:#0a0a0a;font-size:9px;font-weight:800;display:none;align-items:center;justify-content:center;border:1.5px solid var(--bg)}
 
@@ -44,8 +43,14 @@
     .page{max-width:1280px;margin:0 auto;padding:0 24px 80px}
     .product-top{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-bottom:64px}
 
-    /* Galeri */
-    .gallery{display:flex;flex-direction:column;gap:12px}
+    /* ── AMAZON TARZI GALERİ ── */
+    .gallery{display:flex;gap:14px}
+    .gallery-thumbs{display:flex;flex-direction:column;gap:8px;width:72px;flex-shrink:0}
+    .gallery-thumb{width:72px;height:72px;border-radius:10px;overflow:hidden;border:2px solid var(--border);cursor:pointer;background:var(--surface-2);transition:border-color .2s;flex-shrink:0}
+    .gallery-thumb:hover{border-color:var(--gold-border)}
+    .gallery-thumb.active{border-color:var(--gold)}
+    .gallery-thumb img{width:100%;height:100%;object-fit:cover}
+    .gallery-main{flex:1;min-width:0}
     .main-img-wrap{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;aspect-ratio:1/1;cursor:zoom-in}
     .main-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .5s cubic-bezier(.4,0,.2,1);display:block}
     .main-img-wrap:hover img{transform:scale(1.04)}
@@ -53,6 +58,7 @@
     .img-badge-pct{position:absolute;top:16px;right:16px;z-index:2;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);color:var(--gold);border:1px solid var(--gold-border);font-size:11px;font-weight:700;padding:4px 11px;border-radius:999px}
     .img-badge-out{position:absolute;inset:0;z-index:3;background:rgba(17,19,21,.7);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center}
     .img-badge-out span{font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--red);border:1px solid rgba(248,113,113,.3);background:var(--red-dim);padding:8px 20px;border-radius:999px}
+    .gallery-zoom-hint{font-size:11px;color:var(--text-3);text-align:center;margin-top:6px}
 
     /* Zoom */
     .zoom-overlay{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.92);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
@@ -60,6 +66,9 @@
     .zoom-overlay img{max-width:90vw;max-height:90vh;object-fit:contain;border-radius:12px}
     .zoom-close{position:absolute;top:20px;right:24px;width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.1);color:var(--text-1);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;transition:background .2s}
     .zoom-close:hover{background:rgba(255,255,255,.2)}
+    .zoom-nav{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;transition:background .2s}
+    .zoom-nav:hover{background:rgba(255,255,255,.2)}
+    .zoom-prev{left:24px} .zoom-next{right:24px}
 
     /* Ürün bilgi */
     .product-info{display:flex;flex-direction:column;gap:20px;padding-top:4px}
@@ -81,81 +90,23 @@
     .stock-label.in-stock{color:var(--green);font-weight:600}
     .stock-label.out-stock{color:var(--red);font-weight:600}
     .info-desc{font-size:14px;color:var(--text-2);line-height:1.8;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px}
+    .qty-row{display:flex;align-items:center;gap:12px}
+    .qty-label{font-size:12px;color:var(--text-2);font-weight:500}
+    .qty-ctrl{display:flex;align-items:center;gap:0;border:1px solid var(--border);border-radius:9px;overflow:hidden;background:var(--surface-2)}
+    .qty-ctrl button{width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:var(--text-2);font-size:12px;transition:all .2s}
+    .qty-ctrl button:hover{background:var(--gold);color:#0a0a0a}
+    .qty-ctrl span{min-width:36px;text-align:center;font-size:14px;font-weight:700}
     .info-actions{display:flex;gap:10px}
     .btn-add-cart{flex:1;padding:14px 20px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:#0a0a0a;border-radius:12px;font-size:14px;font-weight:700;letter-spacing:.03em;display:flex;align-items:center;justify-content:center;gap:8px;transition:all var(--t);box-shadow:0 4px 20px rgba(201,168,76,.25);cursor:pointer}
     .btn-add-cart:hover{filter:brightness(1.1);transform:translateY(-2px)}
     .btn-add-cart.added{background:linear-gradient(135deg,var(--green),#22c55e);color:#0a0a0a}
     .btn-add-cart:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
     .btn-wa{padding:14px 18px;border-radius:12px;background:var(--surface-2);border:1px solid var(--border);color:var(--text-2);font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px;transition:all var(--t);cursor:pointer}
-    .btn-wa:hover{border-color:var(--gold-border);color:var(--gold)}
+    .btn-wa:hover{border-color:#25d366;color:#25d366;background:rgba(37,211,102,.08)}
     .info-meta{display:flex;flex-direction:column;gap:8px}
     .meta-row{display:flex;align-items:center;gap:8px;font-size:12px}
     .meta-row i{color:var(--gold);width:14px;text-align:center}
     .meta-row span{color:var(--text-2)}
-
-    /* Yorumlar */
-    .reviews-section{margin-top:16px}
-    .reviews-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px}
-    .reviews-title{font-size:20px;font-weight:800;letter-spacing:-.03em;display:flex;align-items:center;gap:10px}
-    .reviews-title i{color:var(--gold)}
-    .reviews-avg{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 18px}
-    .avg-number{font-size:28px;font-weight:800;color:var(--gold);letter-spacing:-.04em}
-    .avg-right{display:flex;flex-direction:column;gap:2px}
-    .avg-stars{display:flex;gap:3px;color:var(--gold);font-size:13px}
-    .avg-count{font-size:11px;color:var(--text-3)}
-    .review-list{display:flex;flex-direction:column;gap:14px;margin-bottom:40px}
-    .review-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;display:flex;gap:16px;animation:fade-up .35s ease both;transition:border-color var(--t)}
-    .review-card:hover{border-color:#2e333a}
-    @keyframes fade-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-    .review-avatar{width:42px;height:42px;border-radius:50%;flex-shrink:0;background:var(--gold-dim);border:1px solid var(--gold-border);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--gold)}
-    .review-body{flex:1;min-width:0}
-    .review-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
-    .review-author{font-size:14px;font-weight:700}
-    .review-stars{display:flex;gap:2px;color:var(--gold);font-size:11px}
-    .review-date{font-size:11px;color:var(--text-3);margin-left:auto}
-    .review-title{font-size:13px;font-weight:600;margin-bottom:5px}
-    .review-text{font-size:13px;color:var(--text-2);line-height:1.75}
-    .reviews-empty{text-align:center;padding:48px;color:var(--text-3);background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:40px}
-    .reviews-empty i{font-size:28px;margin-bottom:10px;display:block}
-
-    /* Yorum formu */
-    .review-form-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden}
-    .form-head{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
-    .form-head-icon{width:36px;height:36px;border-radius:9px;background:var(--gold-dim);border:1px solid var(--gold-border);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:13px}
-    .form-head-text h3{font-size:15px;font-weight:700;margin-bottom:1px}
-    .form-head-text p{font-size:12px;color:var(--text-2)}
-    .approval-notice{margin:20px 24px 0;display:flex;align-items:flex-start;gap:10px;background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--gold);line-height:1.6}
-    .approval-notice i{font-size:14px;flex-shrink:0;margin-top:1px}
-
-    /* Google giriş uyarısı */
-    .google-login-notice{margin:20px 24px 0;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
-    .google-login-notice p{font-size:12px;color:var(--text-2);line-height:1.5;flex:1}
-    .btn-google-login{display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:9px;background:var(--gold-dim);border:1px solid var(--gold-border);color:var(--gold);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all var(--t);font-family:'Poppins',sans-serif}
-    .btn-google-login:hover{background:rgba(201,168,76,.2)}
-
-    .form-body{padding:20px 24px 24px;display:flex;flex-direction:column;gap:16px}
-    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-    .form-group{display:flex;flex-direction:column;gap:6px}
-    .form-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2)}
-    .form-label .req{color:var(--gold);margin-left:2px}
-    .form-input,.form-textarea{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text-1);font-size:13px;width:100%;transition:all var(--t)}
-    .form-input::placeholder,.form-textarea::placeholder{color:var(--text-3)}
-    .form-input:focus,.form-textarea:focus{border-color:var(--gold);background:var(--surface-3);box-shadow:0 0 0 3px var(--gold-dim);outline:none}
-    .form-input:read-only{opacity:.7;cursor:not-allowed}
-    .form-textarea{resize:vertical;min-height:110px;line-height:1.65}
-    .star-picker{display:flex;gap:6px}
-    .star-pick{font-size:22px;color:var(--text-3);cursor:pointer;transition:color .15s,transform .15s}
-    .star-pick:hover,.star-pick.selected{color:var(--gold)}
-    .star-pick:hover{transform:scale(1.2)}
-    .btn-submit{align-self:flex-end;padding:11px 28px;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:#0a0a0a;font-size:13px;font-weight:700;letter-spacing:.03em;display:flex;align-items:center;gap:7px;transition:all var(--t);box-shadow:0 4px 16px rgba(201,168,76,.25);cursor:pointer}
-    .btn-submit:hover{filter:brightness(1.1);transform:translateY(-1px)}
-    .btn-submit .spinner{display:none;width:14px;height:14px;border:2px solid rgba(0,0,0,.2);border-top-color:#0a0a0a;border-radius:50%;animation:spin .6s linear infinite}
-    .btn-submit.loading .btn-label{display:none} .btn-submit.loading .spinner{display:block}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .form-success{display:none;text-align:center;padding:40px 24px}
-    .form-success-icon{width:64px;height:64px;border-radius:50%;margin:0 auto 16px;background:var(--green-dim);border:1px solid rgba(74,222,128,.25);display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--green)}
-    .form-success h3{font-size:17px;font-weight:700;margin-bottom:6px}
-    .form-success p{font-size:13px;color:var(--text-2)}
 
     .sk{background:linear-gradient(90deg,var(--surface) 0%,var(--surface-3) 50%,var(--surface) 100%);background-size:200% 100%;border-radius:8px;animation:shimmer 1.4s ease infinite}
     @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
@@ -167,8 +118,8 @@
     .toast.t-info{border-left:3px solid var(--gold)} .toast.t-info i{color:var(--gold)}
     @keyframes t-in{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
 
-    @media(max-width:900px){.product-top{grid-template-columns:1fr;gap:32px}.main-img-wrap{aspect-ratio:4/3}}
-    @media(max-width:600px){.page{padding:0 16px 60px}.breadcrumb{padding:12px 16px}.form-row{grid-template-columns:1fr}.info-actions{flex-direction:column}.btn-wa{justify-content:center}}
+    @media(max-width:900px){.product-top{grid-template-columns:1fr;gap:32px}.main-img-wrap{aspect-ratio:4/3}.gallery{flex-direction:column-reverse}.gallery-thumbs{flex-direction:row;width:100%;overflow-x:auto;padding-bottom:4px}.gallery-thumb{width:60px;height:60px;flex-shrink:0}}
+    @media(max-width:600px){.page{padding:0 16px 60px}.breadcrumb{padding:12px 16px}.info-actions{flex-direction:column}.btn-wa{justify-content:center}}
   </style>
 </head>
 <body>
@@ -177,6 +128,7 @@
   <div class="h-inner">
     <a href="index.html" class="logo"><div class="logo-icon"><i class="fa-solid fa-bolt"></i></div><div class="logo-text">Akif <span>İletişim</span></div></a>
     <div class="h-right">
+      <a href="index.html" class="h-btn"><i class="fa-solid fa-arrow-left"></i> Geri</a>
       <a href="cart.html" class="h-btn cart-btn"><i class="fa-solid fa-bag-shopping"></i> Sepet<span class="cart-badge" id="cart-badge">0</span></a>
     </div>
   </div>
@@ -203,73 +155,14 @@
       <div class="sk" style="height:52px;border-radius:12px;"></div>
     </div>
   </div>
-
-  <div class="reviews-section" id="reviews-section" style="display:none;">
-    <div class="reviews-header">
-      <div class="reviews-title"><i class="fa-solid fa-star"></i> Müşteri Yorumları</div>
-      <div class="reviews-avg" id="reviews-avg" style="display:none;">
-        <div class="avg-number" id="avg-number">—</div>
-        <div class="avg-right"><div class="avg-stars" id="avg-stars"></div><div class="avg-count" id="avg-count">yorum</div></div>
-      </div>
-    </div>
-    <div class="review-list" id="review-list"></div>
-
-    <!-- YORUM FORMU -->
-    <div class="review-form-card">
-      <div class="form-head">
-        <div class="form-head-icon"><i class="fa-regular fa-pen-to-square"></i></div>
-        <div class="form-head-text"><h3>Yorum Yaz</h3><p>Deneyimini diğer alıcılarla paylaş</p></div>
-      </div>
-      <div class="approval-notice"><i class="fa-solid fa-shield-halved"></i><span><strong>Yorumunuz onaylandıktan sonra yayınlanacaktır.</strong><br>Ekibimiz inceledikten sonra uygun bulunanlar sayfada görünür.</span></div>
-
-      <!-- Google giriş uyarısı (giriş yokken görünür) -->
-      <div class="google-login-notice" id="google-login-notice" style="display:none;">
-        <i class="fa-brands fa-google" style="font-size:20px;color:#c9a84c;flex-shrink:0;"></i>
-        <p>Yorum yazabilmek için Google hesabınızla giriş yapın. Adınız otomatik doldurulacaktır.</p>
-        <button class="btn-google-login" onclick="signInForReview()"><i class="fa-brands fa-google"></i> Giriş Yap</button>
-      </div>
-
-      <div id="review-form-wrap">
-        <form class="form-body" id="review-form" onsubmit="submitReview(event)">
-          <input type="hidden" id="r-product-id" />
-          <input type="hidden" id="r-product-name" />
-          <input type="hidden" id="r-rating" value="5" />
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Adınız <span class="req">*</span></label>
-              <input type="text" id="r-author" class="form-input" placeholder="Adınız Soyadınız" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Puanınız <span class="req">*</span></label>
-              <div class="star-picker" id="star-picker">
-                <span class="star-pick selected" data-val="1" onclick="setRating(1)">★</span>
-                <span class="star-pick selected" data-val="2" onclick="setRating(2)">★</span>
-                <span class="star-pick selected" data-val="3" onclick="setRating(3)">★</span>
-                <span class="star-pick selected" data-val="4" onclick="setRating(4)">★</span>
-                <span class="star-pick selected" data-val="5" onclick="setRating(5)">★</span>
-              </div>
-            </div>
-          </div>
-          <div class="form-group"><label class="form-label">Yorum Başlığı</label><input type="text" id="r-title" class="form-input" placeholder="Kısa bir başlık…" /></div>
-          <div class="form-group"><label class="form-label">Yorumunuz <span class="req">*</span></label><textarea id="r-text" class="form-textarea" placeholder="Ürün hakkındaki deneyimlerinizi paylaşın…" required></textarea></div>
-          <button type="submit" class="btn-submit" id="r-submit-btn">
-            <span class="btn-label"><i class="fa-solid fa-paper-plane"></i> Yorumu Gönder</span>
-            <span class="spinner"></span>
-          </button>
-        </form>
-      </div>
-      <div class="form-success" id="form-success">
-        <div class="form-success-icon"><i class="fa-solid fa-check"></i></div>
-        <h3>Yorumunuz Alındı!</h3>
-        <p>Ekibimiz inceledikten sonra yayınlayacak. Teşekkürler 🙏</p>
-      </div>
-    </div>
-  </div>
 </div>
 
-<div class="zoom-overlay" id="zoom-overlay" onclick="closeZoom()">
-  <div class="zoom-close"><i class="fa-solid fa-xmark"></i></div>
+<!-- Zoom overlay -->
+<div class="zoom-overlay" id="zoom-overlay">
+  <div class="zoom-close" onclick="closeZoom()"><i class="fa-solid fa-xmark"></i></div>
+  <div class="zoom-nav zoom-prev" onclick="zoomNav(-1)"><i class="fa-solid fa-chevron-left"></i></div>
   <img id="zoom-img" src="" alt="" />
+  <div class="zoom-nav zoom-next" onclick="zoomNav(1)"><i class="fa-solid fa-chevron-right"></i></div>
 </div>
 <div id="toast-root"></div>
 
@@ -289,34 +182,13 @@ const firebaseConfig = {
 const WA_NUMBER = "905419705263";
 
 firebase.initializeApp(firebaseConfig);
-const db       = firebase.firestore();
-const auth     = firebase.auth();
-const provider = new firebase.auth.GoogleAuthProvider();
-provider.setCustomParameters({ prompt:'select_account' });
+const db   = firebase.firestore();
+const auth = firebase.auth();
 
-var currentUser = null;
-var productId   = new URLSearchParams(location.search).get('id');
-
-/* Auth durumu */
-auth.onAuthStateChanged(function(user) {
-  currentUser = user;
-  var notice = document.getElementById('google-login-notice');
-  if (user) {
-    notice.style.display = 'none';
-    /* Kullanıcı adını form alanına otomatik doldur */
-    var authorField = document.getElementById('r-author');
-    if (authorField && !authorField.value) {
-      authorField.value = user.displayName || '';
-    }
-  } else {
-    notice.style.display = 'flex';
-  }
-});
-
-async function signInForReview() {
-  try { await auth.signInWithPopup(provider); }
-  catch(e) { if (e.code !== 'auth/popup-closed-by-user') toast('Giriş başarısız.','error'); }
-}
+var productImages = [];
+var zoomIdx = 0;
+var itemQty = 1;
+var productId = new URLSearchParams(location.search).get('id');
 
 /* Sepet badge */
 (function(){
@@ -329,14 +201,13 @@ async function signInForReview() {
 /* Ürün yükleme */
 async function loadProduct() {
   if (!productId) {
-    document.getElementById('product-top').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:80px;color:var(--text-3);"><i class="fa-solid fa-triangle-exclamation" style="font-size:32px;display:block;margin-bottom:12px;"></i>Ürün bulunamadı.</div>';
+    document.getElementById('product-top').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:80px;color:var(--text-3);"><i class="fa-solid fa-triangle-exclamation" style="font-size:32px;display:block;margin-bottom:12px;"></i>Ürün ID bulunamadı.</div>';
     return;
   }
   try {
     var doc = await db.collection('products').doc(productId).get();
     if (!doc.exists) throw new Error('Ürün mevcut değil');
     renderProduct(doc.id, doc.data());
-    await loadReviews(doc.id, doc.data().name);
   } catch(err) {
     document.getElementById('product-top').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:80px;color:var(--red);">Yükleme hatası: '+esc(err.message)+'</div>';
   }
@@ -345,42 +216,49 @@ async function loadProduct() {
 function renderProduct(id, d) {
   var isSale  = d.salePrice && d.salePrice < d.price;
   var isStock = d.stock !== 'outofstock';
-  var price   = isSale ? d.salePrice : d.price;
   var pct     = isSale ? (d.discountPct || Math.round((1-d.salePrice/d.price)*100)) : 0;
   var images  = Array.isArray(d.imageUrls) && d.imageUrls.length ? d.imageUrls : (d.imageUrl ? [d.imageUrl] : ['']);
 
+  productImages = images;
   document.getElementById('bc-name').textContent = d.name||'Ürün';
   document.title = (d.name||'Ürün') + ' — Akif İletişim';
 
+  /* Galeri */
   var badgesHtml = '';
   if (isSale) badgesHtml += '<div class="img-badge-sale"><i class="fa-solid fa-bolt"></i> Fırsat</div><div class="img-badge-pct">%'+pct+'</div>';
   if (!isStock) badgesHtml += '<div class="img-badge-out"><span>Stok Tükendi</span></div>';
 
-  var thumbs = images.length > 1
-    ? '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;">' + images.map(function(src, i){
-        return '<button type="button" onclick="setMainImage('+i+')" style="border:1px solid var(--border);border-radius:10px;overflow:hidden;aspect-ratio:1/1;background:var(--surface-2);">'+
-          '<img src="'+esc(src)+'" style="width:100%;height:100%;object-fit:cover;" alt="" />'+
-        '</button>';
+  var thumbsHtml = images.length > 1
+    ? '<div class="gallery-thumbs">' + images.map(function(src,i){
+        return '<div class="gallery-thumb'+(i===0?' active':'')+'" id="thumb-'+i+'" onclick="setMainImg('+i+')" >'+
+          '<img src="'+esc(src)+'" alt="" onerror="this.style.background=\'var(--surface-3)\'" />'+
+        '</div>';
       }).join('') + '</div>'
     : '';
 
   var imgHtml =
-    '<div class="gallery"><div class="main-img-wrap" onclick="openZoom(document.getElementById(\'pd-main-img\').src)">' +
-      badgesHtml +
-      '<img id="pd-main-img" src="'+esc(images[0]||'')+'" alt="'+esc(d.name)+'" style="object-fit:cover;" />' +
-    '</div>' + thumbs +
-    '<p style="font-size:11px;color:var(--text-3);text-align:center;margin-top:4px;"><i class="fa-solid fa-magnifying-glass-plus" style="margin-right:4px;"></i>Büyütmek için tıkla</p>' +
+    '<div class="gallery">'+
+      thumbsHtml+
+      '<div class="gallery-main">'+
+        '<div class="main-img-wrap" onclick="openZoom(0)">'+
+          badgesHtml+
+          '<img id="pd-main-img" src="'+esc(images[0]||'')+'" alt="'+esc(d.name)+'" />'+
+        '</div>'+
+        '<p class="gallery-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus" style="margin-right:4px;"></i>Büyütmek için tıkla</p>'+
+      '</div>'+
     '</div>';
 
+  /* Fiyat */
   var priceHtml = isSale
     ? '<span class="price-main">'+fmt(d.salePrice)+'</span><span class="price-old">'+fmt(d.price)+'</span><span class="price-discount-chip">%'+pct+' İndirim</span>'
     : '<span class="price-main normal">'+fmt(d.price)+'</span>';
 
   var stockClass = isStock ? 'in-stock' : 'out-stock';
   var stockLabel = isStock ? 'Stokta Var — Hızlı Kargo' : 'Stok Tükendi';
-  var cartBtnId  = 'cart-btn-'+id;
-  var cartBtn    = isStock
-    ? '<button class="btn-add-cart" id="'+cartBtnId+'" onclick="addToCart(\''+id+'\',\''+esc(d.name)+'\','+price+',\''+esc(images[0]||'')+'\')"><i class="fa-solid fa-bag-shopping"></i> Sepete Ekle</button>'
+  var price = isSale ? d.salePrice : d.price;
+
+  var cartBtn = isStock
+    ? '<button class="btn-add-cart" id="cart-btn" onclick="addToCart(\''+esc(id)+'\',\''+esc(d.name)+'\','+price+',\''+esc(images[0]||'')+'\')"><i class="fa-solid fa-bag-shopping"></i> Sepete Ekle</button>'
     : '<button class="btn-add-cart" disabled><i class="fa-solid fa-ban"></i> Stok Tükendi</button>';
 
   var infoHtml =
@@ -391,135 +269,80 @@ function renderProduct(id, d) {
       '<div class="info-price">'+priceHtml+'</div>'+
       '<div class="info-stock"><div class="stock-dot '+stockClass+'"></div><span class="stock-label '+stockClass+'">'+stockLabel+'</span></div>'+
       '<div class="info-desc">'+esc(d.description||'—')+'</div>'+
+      (isStock ? '<div class="qty-row"><span class="qty-label">Adet:</span><div class="qty-ctrl"><button onclick="changeQty(-1)"><i class="fa-solid fa-minus"></i></button><span id="qty-disp">1</span><button onclick="changeQty(1)"><i class="fa-solid fa-plus"></i></button></div></div>' : '')+
       '<div class="info-actions">'+cartBtn+
-        '<button class="btn-wa" onclick="waOrder(\''+esc(d.name)+'\','+price+')"><i class="fa-brands fa-whatsapp"></i> WhatsApp'ta Sor</button>'+
+        '<button class="btn-wa" onclick="waOrder(\''+esc(d.name)+'\','+price+')"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>'+
       '</div>'+
       '<div class="info-meta">'+
-        '<div class="meta-row"><i class="fa-solid fa-truck-fast"></i><span>Aynı gün kargo</span></div>'+
+        '<div class="meta-row"><i class="fa-solid fa-truck-fast"></i><span>Aynı gün kargo imkânı</span></div>'+
         '<div class="meta-row"><i class="fa-solid fa-shield-halved"></i><span>Garantili ürün</span></div>'+
         '<div class="meta-row"><i class="fa-solid fa-rotate-left"></i><span>14 gün iade hakkı</span></div>'+
+        '<div class="meta-row"><i class="fa-brands fa-whatsapp" style="color:#25d366;"></i><span>WhatsApp sipariş takibi</span></div>'+
       '</div>'+
     '</div>';
 
   document.getElementById('product-top').innerHTML = imgHtml + infoHtml;
-  window.__productImages = images;
-  document.getElementById('r-product-id').value   = id;
-  document.getElementById('r-product-name').value = d.name||'';
 }
 
-function setMainImage(idx) {
-  var list = window.__productImages || [];
-  if (!list[idx]) return;
+/* Adet değiştirme */
+function changeQty(delta) {
+  itemQty = Math.max(1, itemQty + delta);
+  var el = document.getElementById('qty-disp');
+  if (el) el.textContent = itemQty;
+}
+
+/* Thumbnail seçimi */
+function setMainImg(idx) {
   var main = document.getElementById('pd-main-img');
-  if (!main) return;
-  main.src = list[idx];
+  if (main && productImages[idx]) main.src = productImages[idx];
+  document.querySelectorAll('.gallery-thumb').forEach(function(t,i){
+    t.classList.toggle('active', i === idx);
+  });
+  /* zoom overlay da güncelle */
+  zoomIdx = idx;
 }
 
-/* ── ONAYLANAN YORUMLAR ── tüm ziyaretçiler görebilir */
-async function loadReviews(pid, pname) {
-  document.getElementById('reviews-section').style.display = 'block';
-  try {
-    var snap = await db.collection('comments')
-      .where('productId','==',pid)
-      .where('status','==','approved')
-      .orderBy('createdAt','desc')
-      .get();
-    var reviews = snap.docs.map(function(d){ return Object.assign({id:d.id},d.data()); });
-    renderReviews(reviews);
-  } catch(err) {
-    document.getElementById('review-list').innerHTML = '<div class="reviews-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Yorumlar yüklenemedi.</p></div>';
-  }
+/* ── ZOOM ── */
+function openZoom(idx) {
+  zoomIdx = idx;
+  document.getElementById('zoom-img').src = productImages[zoomIdx] || '';
+  document.getElementById('zoom-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
-
-function renderReviews(reviews) {
-  var listEl  = document.getElementById('review-list');
-  var avgEl   = document.getElementById('reviews-avg');
-  if (!reviews.length) {
-    listEl.innerHTML = '<div class="reviews-empty"><i class="fa-regular fa-comment"></i><p>Henüz onaylı yorum yok.<br>İlk yorumu sen yaz!</p></div>';
-    return;
-  }
-  var avg = reviews.reduce(function(s,r){ return s+(r.rating||5); },0) / reviews.length;
-  document.getElementById('avg-number').textContent  = avg.toFixed(1);
-  document.getElementById('avg-stars').innerHTML     = starsHtml(Math.round(avg));
-  document.getElementById('avg-count').textContent   = reviews.length+' yorum';
-  avgEl.style.display = 'flex';
-  listEl.innerHTML = reviews.map(function(r,i){
-    var initials = (r.author||'K').slice(0,2).toUpperCase();
-    var dateStr  = r.createdAt&&r.createdAt.toDate ? r.createdAt.toDate().toLocaleDateString('tr-TR') : '';
-    var titleHtml = r.title ? '<div class="review-title">&ldquo;'+esc(r.title)+'&rdquo;</div>' : '';
-    return '<div class="review-card" style="animation-delay:'+(i*60)+'ms">'+
-      '<div class="review-avatar">'+initials+'</div>'+
-      '<div class="review-body">'+
-        '<div class="review-top"><span class="review-author">'+esc(r.author||'Anonim')+'</span><div class="review-stars">'+starsHtml(r.rating||5)+'</div><span class="review-date">'+dateStr+'</span></div>'+
-        titleHtml+'<p class="review-text">'+esc(r.text||'')+'</p>'+
-      '</div></div>';
-  }).join('');
+function closeZoom()  { document.getElementById('zoom-overlay').classList.remove('open'); document.body.style.overflow = ''; }
+function zoomNav(dir) {
+  zoomIdx = (zoomIdx + dir + productImages.length) % productImages.length;
+  document.getElementById('zoom-img').src = productImages[zoomIdx] || '';
 }
-
-function starsHtml(n) {
-  var s = '';
-  for (var i=1;i<=5;i++) s += '<i class="fa-'+(i<=n?'solid':'regular')+' fa-star" style="font-size:13px"></i>';
-  return s;
-}
-
-/* ── YORUM GÖNDER ── */
-function setRating(val) {
-  document.getElementById('r-rating').value = val;
-  document.querySelectorAll('.star-pick').forEach(function(s){ s.classList.toggle('selected', parseInt(s.dataset.val)<=val); });
-}
-
-async function submitReview(e) {
-  e.preventDefault();
-  var author = document.getElementById('r-author').value.trim();
-  var title  = document.getElementById('r-title').value.trim();
-  var text   = document.getElementById('r-text').value.trim();
-  var rating = parseInt(document.getElementById('r-rating').value)||5;
-  var pid    = document.getElementById('r-product-id').value;
-  var pname  = document.getElementById('r-product-name').value;
-  if (!author||!text){ toast('Ad ve yorum zorunludur.','error'); return; }
-  var btn = document.getElementById('r-submit-btn');
-  btn.classList.add('loading');
-  try {
-    await db.collection('comments').add({
-      productId:pid, productName:pname,
-      author:author, title:title||null, text:text, rating:rating,
-      status:'pending',
-      userId: currentUser ? currentUser.uid : null,
-      createdAt:firebase.firestore.FieldValue.serverTimestamp(),
-    });
-    document.getElementById('review-form-wrap').style.display = 'none';
-    document.getElementById('form-success').style.display     = 'block';
-  } catch(err) {
-    toast('Gönderilemedi: '+err.message,'error');
-    btn.classList.remove('loading');
-  }
-}
+document.addEventListener('keydown',function(e){
+  if (e.key==='Escape') closeZoom();
+  if (e.key==='ArrowRight') zoomNav(1);
+  if (e.key==='ArrowLeft') zoomNav(-1);
+});
+document.getElementById('zoom-overlay').addEventListener('click',function(e){
+  if (e.target === this) closeZoom();
+});
 
 /* ── SEPETE EKLE ── */
-function addToCart(id,name,price,img) {
+function addToCart(id, name, price, img) {
   var cart = JSON.parse(localStorage.getItem('akif_cart')||'[]');
   var ex   = cart.find(function(c){ return c.id===id; });
-  if(ex){ ex.qty+=1; } else { cart.push({id:id,name:name,price:price,imageUrl:img,qty:1}); }
+  if(ex){ ex.qty += itemQty; } else { cart.push({id:id,name:name,price:price,imageUrl:img,qty:itemQty}); }
   localStorage.setItem('akif_cart',JSON.stringify(cart));
   var total = cart.reduce(function(s,c){ return s+c.qty; },0);
   var badge = document.getElementById('cart-badge');
   badge.textContent=total; badge.style.display='flex';
-  var btn = document.getElementById('cart-btn-'+id);
-  if(btn){ btn.classList.add('added'); btn.innerHTML='<i class="fa-solid fa-check"></i> Eklendi'; setTimeout(function(){ btn.classList.remove('added'); btn.innerHTML='<i class="fa-solid fa-bag-shopping"></i> Sepete Ekle'; },1800); }
-  toast(name+' sepete eklendi.','success');
+  var btn = document.getElementById('cart-btn');
+  if(btn){ btn.classList.add('added'); btn.innerHTML='<i class="fa-solid fa-check"></i> Eklendi ('+total+')'; setTimeout(function(){ btn.classList.remove('added'); btn.innerHTML='<i class="fa-solid fa-bag-shopping"></i> Sepete Ekle'; },1800); }
+  toast(itemQty+'x '+name+' sepete eklendi.','success');
 }
 
 /* WA */
-function waOrder(name,price) {
+function waOrder(name, price) {
   var fullUrl = window.location.href;
-  var msg = 'Merhaba Akif İletişim, şu ürün hakkında bilgi almak istiyorum:\n\n▸ '+name+' — '+fmt(price)+'\n🔗 Ürün Linki: '+fullUrl;
+  var msg = 'Merhaba Akif İletişim,\n\nŞu ürünü sipariş etmek istiyorum:\n\n▸ '+name+'\n▸ Fiyat: '+fmt(price)+'\n🔗 '+fullUrl+'\n\nBilgi alabilir miyim?';
   window.open('https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(msg),'_blank');
 }
-
-/* Zoom */
-function openZoom(src){ document.getElementById('zoom-img').src=src; document.getElementById('zoom-overlay').classList.add('open'); document.body.style.overflow='hidden'; }
-function closeZoom()  { document.getElementById('zoom-overlay').classList.remove('open'); document.body.style.overflow=''; }
-document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeZoom(); });
 
 /* Toast */
 function toast(msg,type) {
@@ -532,7 +355,7 @@ function toast(msg,type) {
   setTimeout(function(){ el.style.transition='opacity .25s'; el.style.opacity='0'; setTimeout(function(){el.remove();},260); },3000);
 }
 
-function fmt(num){ return Number(num).toLocaleString('tr-TR',{style:'currency',currency:'TRY',minimumFractionDigits:2}); }
+function fmt(num){ return Number(num||0).toLocaleString('tr-TR',{style:'currency',currency:'TRY',minimumFractionDigits:2}); }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 loadProduct();
