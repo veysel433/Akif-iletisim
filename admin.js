@@ -1,10 +1,8 @@
 /* ================================================================
-   AKİF İLETİŞİM — admin.js v5
-   ✅ Yorum paneli KALDIRILDI
-   ✅ Firebase Storage fotoğraf yükleme düzeltildi
-   ✅ Çoklu görsel + sıkıştırma
-   ✅ Siparişler — WhatsApp takip
-   ✅ Dinamik kategori sidebar
+   AKİF İLETİŞİM — admin.js v6
+   ✅ WhatsApp müşteri numarasına yönlendirildi
+   ✅ Sipariş silme özelliği eklendi
+   ✅ Storage hata mesajları iyileştirildi
    ================================================================ */
 
 const firebaseConfig = {
@@ -22,7 +20,7 @@ const auth    = firebase.auth();
 const db      = firebase.firestore();
 const storage = firebase.storage();
 
-const WA_NUMBER = '905419705263';
+const WA_NUMBER = '905419705263'; // Admin WhatsApp (yedek)
 
 /* ── STATE ── */
 var allProducts   = [];
@@ -210,7 +208,6 @@ async function uploadFiles(files) {
     showToast('En fazla 8 görsel ekleyebilirsiniz.','error'); return;
   }
 
-  /* Storage erişilebilirlik kontrolü */
   if (!storage) {
     showToast('Firebase Storage bağlantısı yok. URL ile ekleyin.','error'); return;
   }
@@ -238,7 +235,6 @@ async function uploadFiles(files) {
       var fileName = 'products/' + Date.now() + '_' + i + '_' + Math.random().toString(36).slice(2,7) + '.jpg';
       var storageRef = storage.ref().child(fileName);
 
-      /* Upload with progress */
       var uploadTask = storageRef.put(compressed, { contentType: 'image/jpeg' });
 
       var url = await new Promise(function(resolve, reject) {
@@ -266,7 +262,6 @@ async function uploadFiles(files) {
 
     } catch(err) {
       console.error('Upload error:', err);
-      /* Firebase Storage CORS hatası için özel mesaj */
       if (err.code === 'storage/unauthorized' || err.message.includes('CORS') || err.message.includes('network')) {
         showToast('Depolama izni hatası. Firebase Console\'dan Storage kurallarını kontrol edin.','error');
       } else {
@@ -517,14 +512,14 @@ function loadOrders() {
     document.getElementById('stat-orders').textContent     = allOrders.length;
   }, function(err){
     var body = document.getElementById('orders-body');
-    if (body) body.innerHTML = '<tr><td colspan="7" style="padding:32px;text-align:center;color:var(--red);">Hata: '+escHtml(err.message)+'</td></tr>';
+    if (body) body.innerHTML = '<tr><td colspan="8" style="padding:32px;text-align:center;color:var(--red);">Hata: '+escHtml(err.message)+'</td></tr>';
   });
 }
 
 function renderOrdersTable(orders) {
   var tbody = document.getElementById('orders-body');
   if (!tbody) return;
-  if (!orders.length){ tbody.innerHTML='<tr><td colspan="7" style="padding:40px;text-align:center;color:var(--text-3);">Sipariş yok.</td></tr>'; return; }
+  if (!orders.length){ tbody.innerHTML='<tr><td colspan="8" style="padding:40px;text-align:center;color:var(--text-3);">Sipariş yok.</td></tr>'; return; }
   var statusLabels = { pending:'<span class="badge badge-amber">Bekliyor</span>', processing:'<span class="badge badge-gold">Hazırlanıyor</span>', shipped:'<span class="badge badge-green">Kargoda</span>', completed:'<span class="badge badge-green">Tamamlandı</span>', cancelled:'<span class="badge badge-red">İptal</span>' };
   tbody.innerHTML = orders.map(function(item){
     var id=item.id, d=item.data;
@@ -533,6 +528,8 @@ function renderOrdersTable(orders) {
     var itemCount  = Array.isArray(d.items) ? d.items.reduce(function(s,i){ return s+(i.qty||1); },0) : '—';
     var custName   = (d.customer&&d.customer.name)||'—';
     var custPhone  = (d.customer&&d.customer.phone)||'';
+    // WhatsApp linki müşteri numarasına, yoksa admin numarasına
+    var targetPhone = custPhone ? custPhone.replace(/\D/g,'') : WA_NUMBER;
     var waMsg = encodeURIComponent('Merhaba '+custName+', #'+id.slice(-8).toUpperCase()+' numaralı siparişinizle ilgili bilgi vermek istedik.');
     return '<tr>'+
       '<td style="font-size:11px;font-weight:600;font-family:monospace;">#'+id.slice(-8).toUpperCase()+'</td>'+
@@ -543,7 +540,7 @@ function renderOrdersTable(orders) {
       '<td>'+statusHtml+'</td>'+
       '<td><div class="td-actions" style="justify-content:flex-end;gap:5px;">'+
         '<button class="btn btn-ghost btn-xs" onclick="showOrderDetail(\''+id+'\')" title="Detay"><i class="fa-solid fa-eye"></i></button>'+
-        '<a href="https://wa.me/'+WA_NUMBER+'?text='+waMsg+'" target="_blank" class="btn btn-ghost btn-xs" title="WhatsApp\'ta Yaz" style="color:#25d366;"><i class="fa-brands fa-whatsapp"></i></a>'+
+        '<a href="https://wa.me/'+targetPhone+'?text='+waMsg+'" target="_blank" class="btn btn-ghost btn-xs" title="WhatsApp\'ta Yaz" style="color:#25d366;"><i class="fa-brands fa-whatsapp"></i></a>'+
         '<div class="select-wrap" style="min-width:110px;">'+
           '<select class="form-select" style="padding:5px 28px 5px 8px;font-size:11px;" onchange="updateOrderStatus(\''+id+'\',this.value)">'+
             '<option value="pending" '+(d.status==='pending'?'selected':'')+'>Bekliyor</option>'+
@@ -553,6 +550,7 @@ function renderOrdersTable(orders) {
             '<option value="cancelled" '+(d.status==='cancelled'?'selected':'')+'>İptal</option>'+
           '</select>'+
         '</div>'+
+        '<button class="btn btn-danger btn-xs" onclick="deleteOrder(\''+id+'\',\''+id.slice(-8).toUpperCase()+'\')" title="Siparişi Sil"><i class="fa-solid fa-trash"></i></button>'+
       '</div></td>'+
     '</tr>';
   }).join('');
@@ -563,6 +561,17 @@ async function updateOrderStatus(id, status) {
     await db.collection('orders').doc(id).update({ status:status, updatedAt:firebase.firestore.FieldValue.serverTimestamp() });
     showToast('Durum güncellendi.','success');
   } catch(err){ showToast('Hata: '+err.message,'error'); }
+}
+
+function deleteOrder(id, orderNo) {
+  openConfirm('Sipariş #'+orderNo+' silinsin mi?','Bu sipariş kalıcı olarak silinecek.', async function(){
+    try {
+      await db.collection('orders').doc(id).delete();
+      showToast('Sipariş silindi.','success');
+    } catch(err) {
+      showToast('Silme hatası: '+err.message,'error');
+    }
+  });
 }
 
 function showOrderDetail(id) {

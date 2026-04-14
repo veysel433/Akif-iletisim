@@ -1,10 +1,7 @@
 /* ================================================================
-   🔥 AKİF İLETİŞİM — app.js v5
-   ✅ Yorum sistemi TAMAMEN KALDIRILDI
-   ✅ Ürüne tıklayınca product-detail açılır
-   ✅ WhatsApp sipariş akışı
-   ✅ Google Sign-In
-   ✅ Çoklu ürün fotoğrafı (Amazon tarzı galeri)
+   🔥 AKİF İLETİŞİM — app.js v6
+   ✅ Sipariş kaydında customer.email doğru set ediliyor
+   ✅ WhatsApp sipariş onayı
    ================================================================ */
 
 const firebaseConfig = {
