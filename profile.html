@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Siparişlerim — Akif İletişim</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    body{margin:0;background:#111315;color:#eaedf0;font:400 14px/1.6 'Poppins',sans-serif}
+    .wrap{max-width:1100px;margin:0 auto;padding:24px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .btn{padding:9px 14px;border-radius:10px;border:1px solid #2e333a;background:#1a1d21;color:#eaedf0;text-decoration:none}
+    .card{margin-top:18px;background:#1a1d21;border:1px solid #2e333a;border-radius:16px;overflow:hidden}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left}
+    th{font-size:11px;color:#9aa0aa;text-transform:uppercase;letter-spacing:.08em}
+    .status{padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;display:inline-block}
+    .pending{background:rgba(251,191,36,.14);color:#fbbf24}.processing{background:rgba(201,168,76,.14);color:#c9a84c}
+    .shipped,.completed{background:rgba(74,222,128,.14);color:#4ade80}.cancelled{background:rgba(248,113,113,.14);color:#f87171}
+    .muted{color:#9aa0aa}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1><i class="fa-solid fa-clock-rotate-left" style="color:#c9a84c"></i> Siparişlerim</h1>
+    <a class="btn" href="index.html"><i class="fa-solid fa-arrow-left"></i> Alışverişe Dön</a>
+  </div>
+  <div id="auth-note" class="card" style="padding:20px;display:none;">Sipariş geçmişinizi görmek için giriş yapmanız gerekiyor.</div>
+  <div class="card" id="orders-card" style="display:none;">
+    <table>
+      <thead><tr><th>No</th><th>Tarih</th><th>Ürün</th><th>Toplam</th><th>Durum</th></tr></thead>
+      <tbody id="orders-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig={apiKey:"AIzaSyA_qQBvQgAMON13EDSPTUNu58t0W4RD0FA",authDomain:"akif-iletisim-gercekci.firebaseapp.com",projectId:"akif-iletisim-gercekci",storageBucket:"akif-iletisim-gercekci.firebasestorage.app",messagingSenderId:"527995566381",appId:"1:527995566381:web:9ef6f0e8c37acbec89fba4",measurementId:"G-D9WD7K857R"};
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.firestore();
+
+function fmt(n){return Number(n||0).toLocaleString('tr-TR',{style:'currency',currency:'TRY'})}
+function statusLabel(s){
+  var map={pending:'Bekliyor',processing:'Hazırlanıyor',shipped:'Kargoda',completed:'Onaylandı',cancelled:'İptal'};
+  return '<span class="status '+(s||'pending')+'">'+(map[s]||'Bekliyor')+'</span>';
+}
+
+auth.onAuthStateChanged(function(user){
+  if(!user){
+    document.getElementById('auth-note').style.display='block';
+    document.getElementById('orders-card').style.display='none';
+    return;
+  }
+  document.getElementById('auth-note').style.display='none';
+  document.getElementById('orders-card').style.display='block';
+  db.collection('orders').where('userId','==',user.uid).orderBy('createdAt','desc').onSnapshot(function(snap){
+    var rows=snap.docs.map(function(doc){
+      var d=doc.data();
+      var itemCount=Array.isArray(d.items)?d.items.reduce(function(t,i){return t+(i.qty||1)},0):0;
+      var date=d.createdAt&&d.createdAt.toDate?d.createdAt.toDate().toLocaleString('tr-TR'):'—';
+      return '<tr><td>#'+doc.id.slice(-8).toUpperCase()+'</td><td class="muted">'+date+'</td><td>'+itemCount+' ürün</td><td>'+fmt(d.total)+'</td><td>'+statusLabel(d.status)+'</td></tr>';
+    }).join('');
+    document.getElementById('orders-body').innerHTML = rows || '<tr><td colspan="5" class="muted">Henüz sipariş yok.</td></tr>';
+  });
+});
+</script>
+</body>
+</html>

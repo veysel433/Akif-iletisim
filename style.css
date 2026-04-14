@@ -691,3 +691,9 @@ h1,h2,h3,h4,h5,h6 { font-weight: var(--fw-bold); line-height: 1.2; color: var(--
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Premium dokunuşlar */
+.fade-in{animation:fadeIn .55s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.btn,.btn-cart,.btn-checkout,.btn-wa{transition:transform .24s ease,box-shadow .24s ease,filter .24s ease}
+.btn:hover,.btn-cart:hover,.btn-checkout:hover,.btn-wa:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(0,0,0,.28)}

@@ -136,7 +136,7 @@
     .img-url-row .form-input{flex:1}
     .img-preview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:10px;min-height:40px}
     .img-thumb-wrap{position:relative;aspect-ratio:1/1;border-radius:var(--r-md);overflow:hidden;background:var(--surface-2);border:1px solid var(--border)}
-    .img-thumb{width:100%;height:100%;object-fit:contain}
+    .img-thumb{width:100%;height:100%;object-fit:cover}
     .img-thumb-remove{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.7);border:none;color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s}
     .img-thumb-remove:hover{background:var(--red)}
     .img-thumb-badge{position:absolute;bottom:4px;left:4px;font-size:8px;font-weight:700;background:var(--gold);color:#0a0a0a;padding:1px 5px;border-radius:4px}
@@ -184,7 +184,7 @@
     tbody tr:hover{background:var(--surface-2)}
     td{padding:12px 14px;color:var(--text-1);vertical-align:middle}
     .td-actions{display:flex;gap:5px;align-items:center}
-    .product-thumb{width:40px;height:40px;border-radius:var(--r-md);background:var(--surface-3);object-fit:contain;border:1px solid var(--border);flex-shrink:0}
+    .product-thumb{width:40px;height:40px;border-radius:var(--r-md);background:var(--surface-3);object-fit:cover;border:1px solid var(--border);flex-shrink:0}
     .product-name-cell{display:flex;align-items:center;gap:10px}
     .product-name-cell .name{font-weight:600}
     .product-name-cell .cat{font-size:10px;color:var(--text-2)}
@@ -466,6 +466,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <script src="admin.js"></script>
 </body>
 </html>

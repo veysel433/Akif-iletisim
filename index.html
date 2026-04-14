@@ -116,7 +116,7 @@
     /* Görsel — çoklu fotoğraf için slider */
     .p-card__img{position:relative;background:var(--surface-2);aspect-ratio:1/1;overflow:hidden}
     .img-slider{display:flex;width:100%;height:100%;transition:transform .4s ease}
-    .img-slide{min-width:100%;height:100%;object-fit:contain;background:var(--surface-2)}
+    .img-slide{min-width:100%;height:100%;object-fit:cover;background:var(--surface-2)}
     .img-dots{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:4px;z-index:2}
     .img-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.35);transition:background .2s;cursor:pointer}
     .img-dot.active{background:var(--gold)}
@@ -168,7 +168,7 @@
     .cart-empty i{font-size:36px;margin-bottom:12px;display:block}
     .cart-item{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04)}
     .cart-item:last-child{border-bottom:none}
-    .cart-item-img{width:56px;height:56px;border-radius:9px;object-fit:contain;background:var(--surface-2);border:1px solid var(--border);flex-shrink:0}
+    .cart-item-img{width:56px;height:56px;border-radius:9px;object-fit:cover;background:var(--surface-2);border:1px solid var(--border);flex-shrink:0}
     .cart-item-info{flex:1;min-width:0}
     .cart-item-name{font-size:12px;font-weight:600;line-height:1.4;margin-bottom:4px}
     .cart-item-price{font-size:13px;color:var(--gold);font-weight:700}
@@ -418,12 +418,9 @@
       <div class="step-line"></div>
       <div class="checkout-step" id="step-indicator-2"><div class="step-num">2</div><span>Bilgiler</span></div>
       <div class="step-line"></div>
-      <div class="checkout-step" id="step-indicator-3"><div class="step-num">3</div><span>Ödeme</span></div>
-      <div class="step-line"></div>
-      <div class="checkout-step" id="step-indicator-4"><div class="step-num">4</div><span>Onay</span></div>
+      <div class="checkout-step" id="step-indicator-3"><div class="step-num">3</div><span>Onay</span></div>
     </div>
     <div class="checkout-body">
-      <!-- ADIM 1: Sipariş özeti -->
       <div class="checkout-panel active" id="co-step-1">
         <div id="co-items-list"></div>
         <div style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px;">
@@ -431,55 +428,18 @@
           <div class="order-detail-row" style="font-weight:700;font-size:14px;"><span>Toplam</span><span style="color:var(--gold);" id="co-total"></span></div>
         </div>
       </div>
-      <!-- ADIM 2: İletişim bilgileri -->
       <div class="checkout-panel" id="co-step-2">
-        <div class="co-row">
-          <div class="co-form-group"><label class="co-label">Ad <span style="color:var(--gold)">*</span></label><input type="text" class="co-input" id="co-name" placeholder="Adınız" /></div>
-          <div class="co-form-group"><label class="co-label">Soyad <span style="color:var(--gold)">*</span></label><input type="text" class="co-input" id="co-surname" placeholder="Soyadınız" /></div>
-        </div>
+        <p style="font-size:12px;color:var(--text-2);margin-bottom:14px;">Bu form sadece giriş yapmış kullanıcılar için açıktır. Onayladığınızda sipariş detayları WhatsApp'a hazırlanır.</p>
+        <div class="co-form-group"><label class="co-label">Ad Soyad <span style="color:var(--gold)">*</span></label><input type="text" class="co-input" id="co-name" placeholder="Ad Soyad" /></div>
         <div class="co-form-group"><label class="co-label">Telefon <span style="color:var(--gold)">*</span></label><input type="tel" class="co-input" id="co-phone" placeholder="05xx xxx xx xx" /></div>
-        <div class="co-form-group"><label class="co-label">E-posta</label><input type="email" class="co-input" id="co-email" placeholder="ornek@mail.com" /></div>
         <div class="co-form-group"><label class="co-label">Adres <span style="color:var(--gold)">*</span></label><textarea class="co-textarea" id="co-address" placeholder="Teslimat adresi…"></textarea></div>
-        <div class="co-row">
-          <div class="co-form-group"><label class="co-label">İl</label><input type="text" class="co-input" id="co-city" placeholder="İstanbul" /></div>
-          <div class="co-form-group"><label class="co-label">İlçe</label><input type="text" class="co-input" id="co-district" placeholder="Kadıköy" /></div>
-        </div>
-        <div class="co-form-group"><label class="co-label">Sipariş Notu</label><textarea class="co-textarea" id="co-note" placeholder="Opsiyonel notunuz…" style="min-height:56px;"></textarea></div>
       </div>
-      <!-- ADIM 3: Ödeme yöntemi -->
-      <div class="checkout-panel" id="co-step-3">
-        <p style="font-size:12px;color:var(--text-2);margin-bottom:14px;">Ödeme yönteminizi seçin. Ödeme teslimatta gerçekleştirilecektir.</p>
-        <div class="payment-opts" id="payment-opts">
-          <div class="payment-opt selected" onclick="selectPayment(this,'kapida_nakit')">
-            <div class="payment-opt-radio"></div>
-            <div class="payment-opt-icon"><i class="fa-solid fa-money-bill-wave"></i></div>
-            <div class="payment-opt-info"><div class="title">Kapıda Nakit</div><div class="desc">Teslimatta nakit ödeme</div></div>
-          </div>
-          <div class="payment-opt" onclick="selectPayment(this,'kapida_kart')">
-            <div class="payment-opt-radio"></div>
-            <div class="payment-opt-icon"><i class="fa-solid fa-credit-card"></i></div>
-            <div class="payment-opt-info"><div class="title">Kapıda Kart</div><div class="desc">Teslimatta kredi/banka kartı</div></div>
-          </div>
-          <div class="payment-opt" onclick="selectPayment(this,'havale')">
-            <div class="payment-opt-radio"></div>
-            <div class="payment-opt-icon"><i class="fa-solid fa-building-columns"></i></div>
-            <div class="payment-opt-info"><div class="title">Havale / EFT</div><div class="desc">Banka transferi ile ön ödeme</div></div>
-          </div>
-        </div>
-        <div id="havale-info" style="display:none;margin-top:14px;padding:14px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;font-size:12px;color:var(--text-2);line-height:1.8;">
-          <strong style="color:var(--text-1);display:block;margin-bottom:6px;">Banka Bilgileri</strong>
-          IBAN: TR00 0000 0000 0000 0000 0000 00<br>
-          Ad Soyad: Akif İletişim<br>
-          Açıklama: Sipariş numaranızı belirtin
-        </div>
-      </div>
-      <!-- ADIM 4: Onay -->
-      <div class="checkout-panel" id="co-step-4" style="text-align:center;padding:8px 0;">
+      <div class="checkout-panel" id="co-step-3" style="text-align:center;padding:8px 0;">
         <div class="order-confirm-icon"><i class="fa-solid fa-check"></i></div>
         <h3 style="font-size:18px;font-weight:800;margin-bottom:6px;">Siparişiniz Alındı!</h3>
         <div class="order-num" id="co-order-num">Sipariş No: —</div>
         <div id="co-confirm-details" style="text-align:left;"></div>
-        <p style="font-size:12px;color:var(--text-2);margin-top:14px;">Siparişiniz işleme alındı. En kısa sürede sizinle iletişime geçeceğiz.</p>
+        <p style="font-size:12px;color:var(--text-2);margin-top:14px;">Siparişiniz WhatsApp mesajı ile iletildi. Durumunu "Siparişlerim" sayfanızdan takip edebilirsiniz.</p>
       </div>
     </div>
     <div class="checkout-footer" id="checkout-footer">
