@@ -18,6 +18,21 @@
       font:400 14px/1.6 'Poppins',sans-serif;color:var(--text-1);background:var(--bg);
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{
+      min-height:100vh;
+      background:
+        radial-gradient(1100px 640px at -10% -20%,rgba(201,168,76,.10),transparent 62%),
+        radial-gradient(760px 440px at 110% -10%,rgba(100,145,255,.08),transparent 56%),
+        var(--bg);
+      color:var(--text-1);
+    }
+    body::before{
+      content:"";
+      position:fixed;inset:-20% -10%;z-index:-1;pointer-events:none;
+      background:conic-gradient(from 110deg at 34% 30%,rgba(201,168,76,.08),rgba(110,150,255,.05),rgba(201,168,76,.08));
+      filter:blur(52px);animation:pd-aurora 18s linear infinite;
+    }
+    @keyframes pd-aurora{0%{transform:translateX(-2%)}50%{transform:translateX(2%)}100%{transform:translateX(-2%)}}
     a{color:inherit;text-decoration:none} img{display:block;max-width:100%}
     button,input,select,textarea{font-family:inherit;border:none;background:none}
     button{cursor:pointer}
