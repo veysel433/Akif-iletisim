@@ -260,6 +260,9 @@
 
 <div id="toast-root"></div>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
 /* ════════════════════════════════════════════════════
    ⬇️  BURAYA WHATSAPP NUMARANIZI YAZIN
@@ -268,6 +271,12 @@
    Örnek: "905321234567"
 ════════════════════════════════════════════════════ */
 var DEFAULT_WA_NUMBER = "905419705263";
+const firebaseConfig={apiKey:"AIzaSyA_qQBvQgAMON13EDSPTUNu58t0W4RD0FA",authDomain:"akif-iletisim-gercekci.firebaseapp.com",projectId:"akif-iletisim-gercekci",storageBucket:"akif-iletisim-gercekci.firebasestorage.app",messagingSenderId:"527995566381",appId:"1:527995566381:web:9ef6f0e8c37acbec89fba4",measurementId:"G-D9WD7K857R"};
+firebase.initializeApp(firebaseConfig);
+var auth=firebase.auth();
+var db=firebase.firestore();
+var currentUser=null;
+auth.onAuthStateChanged(function(u){ currentUser=u; render(); });
 
 /* ─────────────────────────────────────────────────── */
 
@@ -304,31 +313,45 @@ function clearCart() {
   toast('Sepet temizlendi.');
 }
 
-function sendWhatsapp() {
+async function sendWhatsapp() {
   if (!cart.length) { toast('Sepetiniz boş!'); return; }
+  if (!currentUser) { toast('Sipariş için önce giriş yapın.'); return; }
 
-  var num = (document.getElementById('wa-number').value.trim() || DEFAULT_WA_NUMBER)
-    .replace(/\D/g,'');
-
-  if (num.length < 10) {
-    document.getElementById('wa-number').focus();
-    document.getElementById('wa-number').style.borderColor = '#f87171';
-    setTimeout(function(){ document.getElementById('wa-number').style.borderColor=''; }, 2000);
-    return;
-  }
+  var name = document.getElementById('order-name').value.trim();
+  var phone = document.getElementById('order-phone').value.trim();
+  var address = document.getElementById('order-address').value.trim();
+  if (!name || !phone || !address) { toast('Ad Soyad, telefon ve adres zorunlu.'); return; }
 
   var lines = cart.map(function(item) {
     return '  • ' + item.name + ' x' + item.qty + ' = ' + formatPrice(item.price * item.qty);
   });
 
-  var message =
-    'Merhaba Akif İletişim, şu ürünleri sipariş vermek istiyorum:\n\n' +
-    lines.join('\n') +
-    '\n\n' +
-    'Toplam Tutar: ' + formatPrice(totalPrice());
+  var orderData = {
+    customer:{name:name,phone:phone,address:address},
+    items:cart.map(function(i){return {id:i.id,name:i.name,qty:i.qty,price:i.price};}),
+    total:totalPrice(), status:'pending', payment:'whatsapp_form', userId:currentUser.uid,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
 
-  window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(message), '_blank');
+  try {
+    var ref = await db.collection('orders').add(orderData);
+    var orderNo = ref.id.slice(-8).toUpperCase();
+    var message =
+      'Merhaba Akif İletişim, sipariş oluşturmak istiyorum.\n\n' +
+      'Sipariş No: #' + orderNo + '\n' +
+      'Ad Soyad: ' + name + '\n' +
+      'Telefon: ' + phone + '\n' +
+      'Adres: ' + address + '\n\n' +
+      lines.join('\n') +
+      '\n\nToplam Tutar: ' + formatPrice(totalPrice());
+
+    window.open('https://wa.me/' + DEFAULT_WA_NUMBER + '?text=' + encodeURIComponent(message), '_blank');
+    clearCart();
+  } catch (e) {
+    toast('Sipariş gönderilemedi.');
+  }
 }
+
 
 function render() {
   var layout    = document.getElementById('layout');
@@ -390,25 +413,11 @@ function render() {
         '<div class="sum-row sum-total"><span class="label">Genel Toplam</span><span class="value">' + formatPrice(price) + '</span></div>' +
         '<div class="sum-divider"></div>' +
 
-        /* WA numara alanı */
-        '<div class="wa-input-wrap">' +
-          '<div class="wa-label"><i class="fa-brands fa-whatsapp"></i>&nbsp; WhatsApp Numarası</div>' +
-          '<div class="wa-input-row">' +
-            '<span class="wa-prefix">+</span>' +
-            '<input class="wa-input" id="wa-number" type="tel" ' +
-                   'placeholder="905419705263" ' +
-                   'value="' + DEFAULT_WA_NUMBER + '" ' +
-                   'maxlength="15" />' +
-          '</div>' +
-        '</div>' +
-
-        /* Sipariş butonu */
-        '<button class="btn-wa" onclick="sendWhatsapp()">' +
-          '<i class="fa-brands fa-whatsapp"></i>' +
-          'Akif İletişim WhatsApp Sipariş Hattı' +
-        '</button>' +
-
-        '<p class="wa-note">Butona tıklayınca WhatsApp açılır ve mesaj otomatik oluşturulur.</p>' +
+        '<div class="wa-input-wrap"><div class="wa-label">Ad Soyad *</div><input class="wa-input" id="order-name" type="text" placeholder="Ad Soyad" /></div>' +
+        '<div class="wa-input-wrap"><div class="wa-label">Telefon *</div><input class="wa-input" id="order-phone" type="tel" placeholder="05xx xxx xx xx" /></div>' +
+        '<div class="wa-input-wrap"><div class="wa-label">Adres *</div><textarea class="wa-input" id="order-address" placeholder="Teslimat adresi" style="min-height:80px;padding-left:12px"></textarea></div>' +
+        '<button class="btn-wa" onclick="sendWhatsapp()"><i class="fa-brands fa-whatsapp"></i> WhatsApp Siparişini Oluştur</button>' +
+        '<p class="wa-note">Sadece giriş yapmış kullanıcılar sipariş gönderebilir.</p>' +
         '<div class="sum-divider"></div>' +
 
         /* Sepeti temizle */

@@ -32,7 +32,7 @@ var currentSort      = 'default';
 var currentUser      = null;
 var cart             = JSON.parse(localStorage.getItem('akif_cart') || '[]');
 var checkoutStep     = 1;
-var selectedPayment  = 'kapida_nakit';
+var WHATSAPP_ORDER_NUMBER = '905419705263';
 
 /* ── CAT ICONS ── */
 var CAT_ICONS = {
@@ -71,6 +71,7 @@ function renderUserArea(user) {
         '<div style="font-weight:600;margin-bottom:2px;">' + escHtml(user.displayName || 'Kullanıcı') + '</div>' +
         '<div style="font-size:11px;color:var(--text-3);">' + escHtml(user.email) + '</div>' +
       '</div>' +
+      '<a class="user-dd-item" href="profile.html"><i class="fa-solid fa-clock-rotate-left"></i> Siparişlerim</a>' +
       '<button class="user-dd-item danger" onclick="signOutUser()"><i class="fa-solid fa-right-from-bracket"></i> Çıkış Yap</button>';
   } else {
     btn.innerHTML = '<i class="fa-brands fa-google" style="color:var(--gold);font-size:12px;"></i><span class="uname">Giriş Yap</span><i class="fa-solid fa-chevron-down" style="font-size:8px;"></i>';
@@ -436,9 +437,9 @@ function handleCartOverlayClick(e) { if (e.target === document.getElementById('c
 /* ── CHECKOUT AKIŞI ── */
 function openCheckout() {
   if (!cart.length) { showToast('Sepetiniz boş.', 'error'); return; }
+  if (!currentUser) { showToast('Sipariş için önce giriş yapın.', 'error'); return; }
   closeCart();
   checkoutStep = 1;
-  selectedPayment = 'kapida_nakit';
   renderCheckoutStep(1);
   document.getElementById('checkout-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -454,37 +455,31 @@ function handleCheckoutOverlayClick(e) {
 }
 
 function renderCheckoutStep(step) {
-  // Panel'leri gizle/göster
-  for (var i=1;i<=4;i++) {
+  for (var i=1;i<=3;i++) {
     document.getElementById('co-step-'+i).classList.toggle('active', i === step);
   }
-  // Step indicator
-  for (var j=1;j<=4;j++) {
+  for (var j=1;j<=3;j++) {
     var ind = document.getElementById('step-indicator-'+j);
     ind.className = 'checkout-step';
-    if (j < step)  ind.classList.add('done');
+    if (j < step) ind.classList.add('done');
     if (j === step) ind.classList.add('active');
   }
-  // Head title
-  var titles = {1:'Sipariş Özeti', 2:'İletişim Bilgileri', 3:'Ödeme Yöntemi', 4:'Sipariş Onayı'};
+
+  var titles = {1:'Sipariş Özeti', 2:'Teslimat Bilgileri', 3:'Sipariş Onayı'};
   document.getElementById('checkout-head-title').textContent = titles[step] || 'Sipariş Ver';
 
-  // Geri butonu
-  document.getElementById('co-btn-back').style.display = (step > 1 && step < 4) ? 'block' : 'none';
+  document.getElementById('co-btn-back').style.display = (step > 1 && step < 3) ? 'block' : 'none';
 
-  // İleri butonu
   var nextBtn = document.getElementById('co-btn-next');
   nextBtn.classList.remove('loading');
-  if (step === 4) {
+  if (step === 3) {
     nextBtn.querySelector('.lbl').innerHTML = '<i class="fa-solid fa-check"></i> Tamam';
-  } else if (step === 3) {
-    nextBtn.querySelector('.lbl').innerHTML = 'Siparişi Onayla <i class="fa-solid fa-arrow-right"></i>';
+  } else if (step === 2) {
+    nextBtn.querySelector('.lbl').innerHTML = '<i class="fa-brands fa-whatsapp"></i> WhatsApp ile Gönder';
   } else {
     nextBtn.querySelector('.lbl').innerHTML = 'Devam Et <i class="fa-solid fa-arrow-right"></i>';
   }
-  document.getElementById('checkout-footer').style.display = 'flex';
 
-  // Adım 1: Ürün listesi
   if (step === 1) {
     var html = cart.map(function(item){
       return '<div class="co-item"><img src="'+escHtml(item.imageUrl)+'" alt="" onerror="this.style.display=\'none\'" />' +
@@ -495,30 +490,24 @@ function renderCheckoutStep(step) {
     var total = cart.reduce(function(s,c){ return s+c.price*c.qty; },0);
     document.getElementById('co-subtotal').textContent = fmt(total);
     document.getElementById('co-total').textContent    = fmt(total);
-    // Kullanıcı bilgileri varsa doldur
+
     if (currentUser) {
-      var nameParts = (currentUser.displayName || '').split(' ');
-      if (!document.getElementById('co-name').value) document.getElementById('co-name').value = nameParts[0] || '';
-      if (!document.getElementById('co-surname').value) document.getElementById('co-surname').value = nameParts.slice(1).join(' ') || '';
-      if (!document.getElementById('co-email').value) document.getElementById('co-email').value = currentUser.email || '';
+      if (!document.getElementById('co-name').value) document.getElementById('co-name').value = currentUser.displayName || '';
+      if (!document.getElementById('co-phone').value) document.getElementById('co-phone').value = currentUser.phoneNumber || '';
     }
   }
 }
 
 async function checkoutNext() {
-  if (checkoutStep === 4) { closeCheckout(); return; }
+  if (checkoutStep === 3) { closeCheckout(); return; }
 
   if (checkoutStep === 2) {
     var name    = document.getElementById('co-name').value.trim();
-    var surname = document.getElementById('co-surname').value.trim();
     var phone   = document.getElementById('co-phone').value.trim();
     var address = document.getElementById('co-address').value.trim();
-    if (!name || !surname || !phone || !address) {
-      showToast('Ad, soyad, telefon ve adres zorunludur.', 'error'); return;
+    if (!name || !phone || !address) {
+      showToast('Ad Soyad, telefon ve adres zorunludur.', 'error'); return;
     }
-  }
-
-  if (checkoutStep === 3) {
     await placeOrder();
     return;
   }
@@ -533,30 +522,19 @@ function checkoutBack() {
   renderCheckoutStep(checkoutStep);
 }
 
-function selectPayment(el, value) {
-  selectedPayment = value;
-  document.querySelectorAll('.payment-opt').forEach(function(o){ o.classList.remove('selected'); });
-  el.classList.add('selected');
-  document.getElementById('havale-info').style.display = value === 'havale' ? 'block' : 'none';
-}
-
 async function placeOrder() {
   var btn = document.getElementById('co-btn-next');
   btn.classList.add('loading');
 
   var orderData = {
     customer: {
-      name:     document.getElementById('co-name').value.trim() + ' ' + document.getElementById('co-surname').value.trim(),
-      phone:    document.getElementById('co-phone').value.trim(),
-      email:    document.getElementById('co-email').value.trim(),
-      address:  document.getElementById('co-address').value.trim(),
-      city:     document.getElementById('co-city').value.trim(),
-      district: document.getElementById('co-district').value.trim(),
-      note:     document.getElementById('co-note').value.trim(),
+      name:    document.getElementById('co-name').value.trim(),
+      phone:   document.getElementById('co-phone').value.trim(),
+      address: document.getElementById('co-address').value.trim(),
     },
     items: cart.map(function(item){ return { id:item.id, name:item.name, price:item.price, qty:item.qty }; }),
     total:   cart.reduce(function(s,c){ return s+c.price*c.qty; },0),
-    payment: selectedPayment,
+    payment: 'whatsapp_form',
     status:  'pending',
     userId:  currentUser ? currentUser.uid : null,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -565,19 +543,35 @@ async function placeOrder() {
   try {
     var ref = await db.collection('orders').add(orderData);
     var orderNo = ref.id.slice(-8).toUpperCase();
+    var siteBase = location.origin + location.pathname.replace(/\/[^/]*$/, '/');
 
-    // Onay sayfası detayları
-    var paymentLabels = { kapida_nakit:'Kapıda Nakit', kapida_kart:'Kapıda Kart', havale:'Havale / EFT' };
+    var lines = orderData.items.map(function(item){
+      return '• ' + item.name + ' x' + item.qty + ' = ' + fmt(item.price * item.qty);
+    }).join('\n');
+
+    var waMessage =
+      '🛒 *Yeni Sipariş*\n' +
+      'Sipariş No: #' + orderNo + '\n\n' +
+      '👤 *Müşteri*\n' +
+      'Ad Soyad: ' + orderData.customer.name + '\n' +
+      'Telefon: ' + orderData.customer.phone + '\n' +
+      'Adres: ' + orderData.customer.address + '\n\n' +
+      '📦 *Sepet Detayı*\n' + lines + '\n\n' +
+      '💳 Toplam: ' + fmt(orderData.total) + '\n' +
+      '🔗 Sipariş Kaydı: ' + siteBase + 'admin.html';
+
+    window.open('https://wa.me/' + WHATSAPP_ORDER_NUMBER + '?text=' + encodeURIComponent(waMessage), '_blank');
+
     document.getElementById('co-order-num').textContent = 'Sipariş No: #' + orderNo;
     document.getElementById('co-confirm-details').innerHTML =
       '<div class="order-detail-row"><span>Müşteri</span><span>'+escHtml(orderData.customer.name)+'</span></div>' +
       '<div class="order-detail-row"><span>Telefon</span><span>'+escHtml(orderData.customer.phone)+'</span></div>' +
-      '<div class="order-detail-row"><span>Ödeme</span><span>'+escHtml(paymentLabels[selectedPayment]||selectedPayment)+'</span></div>' +
+      '<div class="order-detail-row"><span>Durum</span><span><span class="badge-gold" style="padding:2px 8px;border-radius:999px;">Bekliyor</span></span></div>' +
       '<div class="order-detail-row"><span>Toplam</span><span style="color:var(--gold);font-weight:700;">'+fmt(orderData.total)+'</span></div>';
 
     clearCart();
-    checkoutStep = 4;
-    renderCheckoutStep(4);
+    checkoutStep = 3;
+    renderCheckoutStep(3);
   } catch(err) {
     btn.classList.remove('loading');
     showToast('Sipariş oluşturulamadı: ' + err.message, 'error');

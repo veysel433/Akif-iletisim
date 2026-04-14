@@ -146,19 +146,39 @@ function switchImgTab(tab, el) {
 }
 
 /* Canvas ile görsel sıkıştırma — telefondan gelen büyük görselleri küçültür */
+function isHeicFile(file) {
+  var name = (file && file.name ? file.name : '').toLowerCase();
+  var type = (file && file.type ? file.type : '').toLowerCase();
+  return /\.(heic|heif)$/.test(name) || type === 'image/heic' || type === 'image/heif';
+}
+
+async function prepareImageFile(file) {
+  if (!isHeicFile(file)) return file;
+  if (typeof heic2any !== 'function') {
+    throw new Error('HEIC dönüştürücü yüklenemedi. Lütfen sayfayı yenileyin.');
+  }
+  var converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+  var outBlob = Array.isArray(converted) ? converted[0] : converted;
+  var safeName = (file.name || 'image').replace(/\.[^.]+$/, '') + '.jpg';
+  return new File([outBlob], safeName, { type: 'image/jpeg' });
+}
+
 function compressImage(file, maxWidth, quality) {
-  maxWidth = maxWidth || 1200;
-  quality  = quality  || 0.82;
+  maxWidth = maxWidth || 1600;
+  quality  = quality  || 0.84;
   return new Promise(function(resolve, reject) {
     var reader = new FileReader();
     reader.onload = function(e) {
       var img = new Image();
       img.onload = function() {
         var canvas = document.createElement('canvas');
-        var ratio  = Math.min(maxWidth / img.width, 1); // küçültme oranı
+        var maxSide = Math.max(img.width, img.height);
+        var ratio  = maxSide > maxWidth ? (maxWidth / maxSide) : 1;
         canvas.width  = Math.round(img.width  * ratio);
         canvas.height = Math.round(img.height * ratio);
         var ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         canvas.toBlob(function(blob) {
           if (!blob) { reject(new Error('Sıkıştırma başarısız')); return; }
@@ -178,7 +198,7 @@ function handleDragLeave()  { document.getElementById('file-drop-zone').classLis
 function handleDrop(e) {
   e.preventDefault();
   document.getElementById('file-drop-zone').classList.remove('drag-over');
-  var files = Array.from(e.dataTransfer.files).filter(function(f){ return f.type.startsWith('image/'); });
+  var files = Array.from(e.dataTransfer.files).filter(function(f){ return (f.type||'').startsWith('image/') || isHeicFile(f); });
   if (files.length) uploadFiles(files);
   else showToast('Lütfen görsel dosyası seçin.','error');
 }
@@ -202,7 +222,9 @@ async function uploadFiles(files) {
     try {
       lbl.textContent = (i+1)+'/'+files.length+' sıkıştırılıyor…';
       bar.style.width = '20%';
-      var compressed = await compressImage(file, 1200, 0.82);
+      var normalized = await prepareImageFile(file);
+      var quality = normalized.size > (8 * 1024 * 1024) ? 0.78 : 0.84;
+      var compressed = await compressImage(normalized, 1600, quality);
       lbl.textContent = (i+1)+'/'+files.length+' yükleniyor…';
       var fileName = 'products/' + Date.now() + '_' + i + '.jpg';
       var ref      = storage.ref().child(fileName);
@@ -510,17 +532,18 @@ function filterComments(filter, btn) {
 
 /* ── SİPARİŞLER ── */
 var allOrders = [];
-async function loadOrders() {
-  try {
-    var snap = await db.collection('orders').orderBy('createdAt','desc').get();
+var ordersUnsub = null;
+function loadOrders() {
+  if (ordersUnsub) ordersUnsub();
+  ordersUnsub = db.collection('orders').orderBy('createdAt','desc').onSnapshot(function(snap){
     allOrders = snap.docs.map(function(doc){ return {id:doc.id,data:doc.data()}; });
     renderOrdersTable(allOrders);
     document.getElementById('nav-order-count').textContent = allOrders.filter(function(o){ return o.data.status==='pending'; }).length;
     document.getElementById('stat-orders').textContent     = allOrders.length;
-  } catch(err) {
+  }, function(err){
     var body = document.getElementById('orders-body');
-    if (body) body.innerHTML = '<tr><td colspan="6" style="padding:32px;text-align:center;color:var(--red);">Hata: '+escHtml(err.message)+'</td></tr>';
-  }
+    if (body) body.innerHTML = '<tr><td colspan="7" style="padding:32px;text-align:center;color:var(--red);">Hata: '+escHtml(err.message)+'</td></tr>';
+  });
 }
 
 function renderOrdersTable(orders) {

@@ -347,6 +347,7 @@ function renderProduct(id, d) {
   var isStock = d.stock !== 'outofstock';
   var price   = isSale ? d.salePrice : d.price;
   var pct     = isSale ? (d.discountPct || Math.round((1-d.salePrice/d.price)*100)) : 0;
+  var images  = Array.isArray(d.imageUrls) && d.imageUrls.length ? d.imageUrls : (d.imageUrl ? [d.imageUrl] : ['']);
 
   document.getElementById('bc-name').textContent = d.name||'Ürün';
   document.title = (d.name||'Ürün') + ' — Akif İletişim';
@@ -355,11 +356,19 @@ function renderProduct(id, d) {
   if (isSale) badgesHtml += '<div class="img-badge-sale"><i class="fa-solid fa-bolt"></i> Fırsat</div><div class="img-badge-pct">%'+pct+'</div>';
   if (!isStock) badgesHtml += '<div class="img-badge-out"><span>Stok Tükendi</span></div>';
 
+  var thumbs = images.length > 1
+    ? '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;">' + images.map(function(src, i){
+        return '<button type="button" onclick="setMainImage('+i+')" style="border:1px solid var(--border);border-radius:10px;overflow:hidden;aspect-ratio:1/1;background:var(--surface-2);">'+
+          '<img src="'+esc(src)+'" style="width:100%;height:100%;object-fit:cover;" alt="" />'+
+        '</button>';
+      }).join('') + '</div>'
+    : '';
+
   var imgHtml =
-    '<div class="gallery"><div class="main-img-wrap" onclick="openZoom(\''+esc(d.imageUrl||'')+'\')">' +
+    '<div class="gallery"><div class="main-img-wrap" onclick="openZoom(document.getElementById(\'pd-main-img\').src)">' +
       badgesHtml +
-      '<img src="'+esc(d.imageUrl||'')+'" alt="'+esc(d.name)+'" />' +
-    '</div>' +
+      '<img id="pd-main-img" src="'+esc(images[0]||'')+'" alt="'+esc(d.name)+'" style="object-fit:cover;" />' +
+    '</div>' + thumbs +
     '<p style="font-size:11px;color:var(--text-3);text-align:center;margin-top:4px;"><i class="fa-solid fa-magnifying-glass-plus" style="margin-right:4px;"></i>Büyütmek için tıkla</p>' +
     '</div>';
 
@@ -371,7 +380,7 @@ function renderProduct(id, d) {
   var stockLabel = isStock ? 'Stokta Var — Hızlı Kargo' : 'Stok Tükendi';
   var cartBtnId  = 'cart-btn-'+id;
   var cartBtn    = isStock
-    ? '<button class="btn-add-cart" id="'+cartBtnId+'" onclick="addToCart(\''+id+'\',\''+esc(d.name)+'\','+price+',\''+esc(d.imageUrl||'')+'\')"><i class="fa-solid fa-bag-shopping"></i> Sepete Ekle</button>'
+    ? '<button class="btn-add-cart" id="'+cartBtnId+'" onclick="addToCart(\''+id+'\',\''+esc(d.name)+'\','+price+',\''+esc(images[0]||'')+'\')"><i class="fa-solid fa-bag-shopping"></i> Sepete Ekle</button>'
     : '<button class="btn-add-cart" disabled><i class="fa-solid fa-ban"></i> Stok Tükendi</button>';
 
   var infoHtml =
@@ -383,7 +392,7 @@ function renderProduct(id, d) {
       '<div class="info-stock"><div class="stock-dot '+stockClass+'"></div><span class="stock-label '+stockClass+'">'+stockLabel+'</span></div>'+
       '<div class="info-desc">'+esc(d.description||'—')+'</div>'+
       '<div class="info-actions">'+cartBtn+
-        '<button class="btn-wa" onclick="waOrder(\''+esc(d.name)+'\','+price+')"><i class="fa-brands fa-whatsapp"></i> WhatsApp\'ta Sor</button>'+
+        '<button class="btn-wa" onclick="waOrder(\''+esc(d.name)+'\','+price+')"><i class="fa-brands fa-whatsapp"></i> WhatsApp'ta Sor</button>'+
       '</div>'+
       '<div class="info-meta">'+
         '<div class="meta-row"><i class="fa-solid fa-truck-fast"></i><span>Aynı gün kargo</span></div>'+
@@ -393,8 +402,17 @@ function renderProduct(id, d) {
     '</div>';
 
   document.getElementById('product-top').innerHTML = imgHtml + infoHtml;
+  window.__productImages = images;
   document.getElementById('r-product-id').value   = id;
   document.getElementById('r-product-name').value = d.name||'';
+}
+
+function setMainImage(idx) {
+  var list = window.__productImages || [];
+  if (!list[idx]) return;
+  var main = document.getElementById('pd-main-img');
+  if (!main) return;
+  main.src = list[idx];
 }
 
 /* ── ONAYLANAN YORUMLAR ── tüm ziyaretçiler görebilir */
@@ -493,7 +511,8 @@ function addToCart(id,name,price,img) {
 
 /* WA */
 function waOrder(name,price) {
-  var msg = 'Merhaba Akif İletişim, şu ürün hakkında bilgi almak istiyorum:\n\n▸ '+name+' — '+fmt(price);
+  var fullUrl = window.location.href;
+  var msg = 'Merhaba Akif İletişim, şu ürün hakkında bilgi almak istiyorum:\n\n▸ '+name+' — '+fmt(price)+'\n🔗 Ürün Linki: '+fullUrl;
   window.open('https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(msg),'_blank');
 }
 
