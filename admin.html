@@ -16,8 +16,8 @@
     @keyframes aurora{0%{transform:translateX(-3%) translateY(0)}50%{transform:translateX(3%) translateY(2%)}100%{transform:translateX(-3%) translateY(0)}}
     .hidden{display:none!important}.app{display:flex;min-height:100vh}
     .sidebar{width:250px;background:linear-gradient(180deg,#101521,#0d121c);border-right:1px solid var(--line);padding:16px;box-shadow:inset -1px 0 0 rgba(255,255,255,.02)}
-    .main{flex:1;padding:22px;max-width:calc(100vw - 250px)}
-    .top{display:flex;justify-content:space-between;gap:12px;margin-bottom:16px}
+    .main{flex:1;min-width:0;padding:22px;max-width:calc(100vw - 250px)}
+    .top{display:flex;justify-content:space-between;gap:12px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)}
     #page-title{margin:0;font-size:30px;line-height:1.08;letter-spacing:-.03em}
     .nav-item{display:block;width:100%;padding:11px 13px;margin-bottom:8px;border:1px solid var(--line);background:#1b222c;color:var(--text);border-radius:10px;text-align:left;cursor:pointer;font-weight:600;transition:.2s}
     .nav-item:hover{border-color:#3a4656;background:#1f2732}
@@ -89,38 +89,7 @@
       .main{max-width:none;padding:16px}
       #page-title{font-size:24px}
       .row{grid-template-columns:1fr}
-      #panel-orders .table{min-width:600px}
     }
-    /* ── Sidebar kategori linkleri ── */
-    .nav-cat-item{
-      display:block;padding:7px 12px;margin-bottom:4px;
-      border-radius:8px;color:var(--muted);font-size:13px;
-      cursor:pointer;transition:.15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-    }
-    .nav-cat-item:hover{background:#1a2130;color:var(--text);}
-    /* ── Kategori başlığı ── */
-    .nav-section-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:10px 12px 4px;margin-top:6px;}
-    /* ── Drag-over durumu ── */
-    #file-drop-zone.drag-over{border-color:var(--gold);background:rgba(215,190,115,.06);}
-    /* ── Upload progress ── */
-    #upload-progress{margin-top:10px;}
-    #upload-progress .prog-bar-track{height:6px;background:#111;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-top:4px;}
-    /* ── Uploading thumb overlay ── */
-    .img-thumb-wrap.uploading{opacity:.6;}
-    .img-thumb-wrap.uploading::after{content:'⏳';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:22px;background:rgba(0,0,0,.35);}
-    /* ── Auth error ── */
-    #auth-error{background:#3b1720;border:1px solid #7f1d1d;color:#fecaca;padding:8px 12px;border-radius:8px;margin-bottom:10px;font-size:14px;}
-    /* ── Tablo hücre taşma önleme ── */
-    .table td{max-width:220px;overflow:hidden;text-overflow:ellipsis;}
-    /* ── Mobile görsel yükleme düğmesi ── */
-    .upload-btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
-    .upload-btn-row label{flex:1;min-width:130px;display:flex;align-items:center;justify-content:center;gap:6px;
-      padding:10px 12px;border-radius:10px;border:1px solid #2a3445;background:#1a2230;
-      color:var(--text);cursor:pointer;font-size:14px;font-weight:500;}
-    .upload-btn-row label:hover{border-color:#3a4656;background:#1f2732;}
-    /* ── Sidebar overlay (mobil) ── */
-    #sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:34;}
-    #sidebar-overlay.visible{display:block;}
   </style>
 </head>
 <body>
@@ -136,7 +105,6 @@
     </div>
   </div>
 
-  <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
   <div id="app" class="app" style="display:none;">
     <aside id="sidebar" class="sidebar">
       <h3>Akif Admin</h3>
@@ -199,20 +167,8 @@
                 <button type="button" class="btn img-tab" onclick="switchImgTab('url',this)">URL</button>
               </div>
               <div id="tab-file" class="img-tab-content active">
-                <div id="file-drop-zone" style="cursor:pointer;">
-                  <i class="fa-regular fa-image" style="font-size:24px;display:block;margin-bottom:6px;color:var(--muted);"></i>
-                  <span style="font-size:13px;">Dosya sürükle-bırak veya seçin</span>
-                  <div class="upload-btn-row">
-                    <label for="file-input"><i class="fa-solid fa-folder-open"></i> Galeriden Seç</label>
-                    <label for="file-input-camera"><i class="fa-solid fa-camera"></i> Kamera</label>
-                  </div>
-                  <input id="file-input" type="file" accept="image/*" multiple style="display:none"/>
-                  <input id="file-input-camera" type="file" accept="image/*" capture="environment" style="display:none"/>
-                </div>
-                <div id="upload-progress" class="hidden" style="display:none;">
-                  <div id="progress-label" style="font-size:12px;color:var(--muted);margin-bottom:4px;"></div>
-                  <div class="prog-bar-track"><div id="progress-bar-fill" style="height:100%;width:0;background:var(--gold);transition:width .2s;border-radius:999px;"></div></div>
-                </div>
+                <div id="file-drop-zone">Dosya sürükle-bırak veya seçin<input id="file-input" type="file" accept="image/*" multiple style="margin-top:8px"/></div>
+                <div id="upload-progress" class="hidden"><div id="progress-label"></div><div style="height:6px;background:#111;border:1px solid var(--line)"><div id="progress-bar-fill" style="height:100%;width:0;background:var(--gold)"></div></div></div>
               </div>
               <div id="tab-url" class="img-tab-content">
                 <div class="row"><input id="p-img-url-single" placeholder="https://..."/><button type="button" class="btn" onclick="addUrlImage()">URL Ekle</button></div>
