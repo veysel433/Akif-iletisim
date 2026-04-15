@@ -38,6 +38,13 @@ var CAT_ICONS = {
   'Tv & Ses Sistemi':'fa-tv','Oyun':'fa-gamepad','Diğer':'fa-box',
 };
 
+function normalizeCategoryKey(name) {
+  return String(name || '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLocaleLowerCase('tr-TR');
+}
+
 /* ── BAŞLANGIC ── */
 document.addEventListener('DOMContentLoaded', function () {
   window.addEventListener('scroll', function () {
@@ -119,24 +126,34 @@ function hideSkeleton() {
 /* ── KATEGORİ SIDEBAR ── */
 async function buildCategoryBar() {
   var cats = {};
-  allProducts.forEach(function(p) { if (p.category) cats[p.category] = (cats[p.category] || 0) + 1; });
+  allProducts.forEach(function(p) {
+    if (!p.category) return;
+    var raw = String(p.category).trim().replace(/\s+/g,' ');
+    var key = normalizeCategoryKey(raw);
+    if (!key) return;
+    if (!cats[key]) cats[key] = { name: raw, count: 0 };
+    cats[key].count += 1;
+  });
 
   try {
     var snap = await db.collection('categories').get();
     snap.docs.forEach(function(doc) {
       var name = doc.data().name;
-      if (name && !cats[name]) cats[name] = 0;
+      var raw = String(name||'').trim().replace(/\s+/g,' ');
+      var key = normalizeCategoryKey(raw);
+      if (key && !cats[key]) cats[key] = { name: raw, count: 0 };
     });
   } catch(e) {}
 
   var body = document.getElementById('cat-sidebar-body');
   var html = '<div class="cat-sidebar-item active" data-cat="all" onclick="filterByCat(\'all\',this)"><i class="fa-solid fa-border-all"></i> Tüm Ürünler <span class="cat-count">'+allProducts.length+'</span></div>';
 
-  Object.keys(cats).forEach(function(cat) {
+  Object.keys(cats).forEach(function(key) {
+    var cat = cats[key].name;
     var icon = CAT_ICONS[cat] || 'fa-tag';
     html += '<div class="cat-sidebar-item" data-cat="'+escHtml(cat)+'" onclick="filterByCat(\''+escJs(cat)+'\',this)">'+
       '<i class="fa-solid '+icon+'"></i> '+escHtml(cat)+
-      '<span class="cat-count">'+cats[cat]+'</span>'+
+      '<span class="cat-count">'+cats[key].count+'</span>'+
     '</div>';
   });
   body.innerHTML = html;
@@ -178,7 +195,7 @@ function clearSearch() {
 
 function applyFiltersAndSort() {
   var result = allProducts.filter(function(p) {
-    var catOk    = activeCategory === 'all' || p.category === activeCategory;
+    var catOk    = activeCategory === 'all' || normalizeCategoryKey(p.category) === normalizeCategoryKey(activeCategory);
     var searchOk = !searchQuery ||
       (p.name||'').toLowerCase().includes(searchQuery) ||
       (p.category||'').toLowerCase().includes(searchQuery) ||

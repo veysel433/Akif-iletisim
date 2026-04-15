@@ -103,6 +103,13 @@ function allCatNames() {
   customNames.forEach(function(n){ if (!merged.includes(n)) merged.push(n); });
   return merged;
 }
+function findCustomCategoryByName(name) {
+  var n = String(name||'').trim().toLowerCase();
+  return allCategories.find(function(c){ return String(c.name||'').trim().toLowerCase() === n; }) || null;
+}
+function isDefaultCategory(name) {
+  return DEFAULT_CATS.some(function(c){ return c.toLowerCase() === String(name||'').trim().toLowerCase(); });
+}
 function buildCategoryOptions() {
   var sel  = document.getElementById('p-category');
   var fsel = document.getElementById('cat-filter-select');
@@ -121,7 +128,11 @@ function updateSidebarCategories() {
   var list = document.getElementById('nav-cat-list');
   if (!list) return;
   list.innerHTML = allCatNames().map(function(cat){
-    return '<div class="nav-cat-item" onclick="switchPanel(\'products\',document.querySelector(\'[data-panel=products]\')); filterByCategory2(\''+escJs(cat)+'\')">'+escHtml(cat)+'</div>';
+    var custom = !!findCustomCategoryByName(cat) && !isDefaultCategory(cat);
+    return '<div class="nav-cat-item">'+
+      '<button class="nav-cat-link" onclick="switchPanel(\'products\',document.querySelector(\'[data-panel=products]\')); filterByCategory2(\''+escJs(cat)+'\')">'+escHtml(cat)+'</button>'+
+      (custom ? '<button class="nav-cat-del" title="Kategoriyi Sil" onclick="deleteCategory(\''+escJs(cat)+'\')"><i class="fa-solid fa-trash"></i></button>' : '')+
+    '</div>';
   }).join('');
 }
 function onCategoryChange(val) {
@@ -146,6 +157,30 @@ async function addCustomCategory() {
   } catch(err){ showToast('Kategori kaydedilemedi: '+err.message,'error'); }
 }
 function cancelNewCategory() { document.getElementById('new-cat-wrap').classList.add('hidden'); document.getElementById('p-category').value=''; document.getElementById('new-cat-input').value=''; }
+
+async function deleteCategory(name) {
+  var found = findCustomCategoryByName(name);
+  if (!found) { showToast('Bu kategori silinemez.','error'); return; }
+  var pCount = allProducts.filter(function(p){ return (p.data.category||'').toLowerCase() === name.toLowerCase(); }).length;
+  openConfirm('"'+name+'" kategorisi silinsin mi?', (pCount>0 ? pCount+' ürün "Diğer" kategorisine taşınacak.\n' : '') + 'Bu işlem geri alınamaz.', async function(){
+    try {
+      if (pCount > 0) {
+        var snap = await db.collection('products').where('category','==',name).get();
+        var batch = db.batch();
+        snap.docs.forEach(function(doc){ batch.update(doc.ref, { category:'Diğer', updatedAt:firebase.firestore.FieldValue.serverTimestamp() }); });
+        await batch.commit();
+      }
+      await db.collection('categories').doc(found.id).delete();
+      allCategories = allCategories.filter(function(c){ return c.id !== found.id; });
+      buildCategoryOptions();
+      updateSidebarCategories();
+      await loadProducts();
+      showToast('Kategori silindi.','success');
+    } catch(err) {
+      showToast('Kategori silinemedi: '+err.message,'error');
+    }
+  });
+}
 
 /* ── GÖRSEL YÜKLEME — Firebase Storage ── */
 function switchImgTab(tab, el) {
@@ -307,9 +342,7 @@ async function uploadFiles(files) {
     }
   }
 
-  if (!pendingImages.length) {
-    showToast('Fotoğraf yüklenemedi. Depolama bağlantısı kontrol edildi, lütfen tekrar deneyin.','error');
-  }
+  if (!pendingImages.length) showToast('Fotoğraf yüklenemedi. Lütfen farklı bir görsel deneyin.','error');
   setTimeout(function(){ progress.style.display='none'; }, 2500);
   renderImagePreviews();
 }
