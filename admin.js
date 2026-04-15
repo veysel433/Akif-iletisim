@@ -203,6 +203,15 @@ function compressImage(file, maxWidth, quality) {
   });
 }
 
+function blobToDataURL(blob) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function() { resolve(reader.result); };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
 function handleDragOver(e)  { e.preventDefault(); document.getElementById('file-drop-zone').classList.add('drag-over'); }
 function handleDragLeave()  { document.getElementById('file-drop-zone').classList.remove('drag-over'); }
 function handleDrop(e) {
@@ -277,9 +286,14 @@ async function uploadFiles(files) {
         }
       }
 
-      if (!url) throw (lastErr || new Error('Görsel yüklenemedi.'));
+      if (!url) {
+        // Storage başarısızsa dosyayı otomatik Data URL'e çevirip devam et
+        // (kullanıcının "dosya yükle -> otomatik url" beklentisi için fallback)
+        url = await blobToDataURL(compressed);
+        showToast('Bulut yükleme başarısız. Görsel otomatik URL olarak eklendi.','info');
+      }
 
-      pendingImages.push({ url: url, source: 'file' });
+      pendingImages.push({ url: url, source: url.indexOf('data:') === 0 ? 'inline' : 'file' });
       bar.style.width = '100%';
       lbl.textContent = '✓ Yüklendi: ' + pendingImages.length + ' görsel';
 
