@@ -21,6 +21,7 @@ const db      = firebase.firestore();
 const storage = firebase.storage();
 
 const WA_NUMBER = '905419705263'; // Admin WhatsApp (yedek)
+const ADMIN_EMAIL = 'seyfullahkaratas51@gmail.com';
 
 /* ── STATE ── */
 var allProducts   = [];
@@ -42,6 +43,12 @@ function getStorageRefs(path) {
 /* ── AUTH ── */
 auth.onAuthStateChanged(function(user) {
   if (user) {
+    if ((user.email || '').toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+      auth.signOut();
+      showAuthError('Bu hesap admin paneline yetkili değil.');
+      showToast('Sadece yetkili admin hesabı giriş yapabilir.','error');
+      return;
+    }
     document.getElementById('auth-overlay').style.display  = 'none';
     document.getElementById('app').style.display = 'flex';
     var email = user.email || 'admin';
@@ -67,6 +74,7 @@ async function adminLogin() {
   var btn      = document.getElementById('login-btn');
   var errBox   = document.getElementById('auth-error');
   if (!email || !password) { showAuthError('E-posta ve şifre zorunludur.'); return; }
+  if (email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) { showAuthError('Sadece yetkili admin e-postası ile giriş yapılabilir.'); return; }
   btn.classList.add('loading'); errBox.style.display = 'none';
   try {
     await auth.signInWithEmailAndPassword(email, password);
