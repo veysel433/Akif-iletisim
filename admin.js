@@ -32,6 +32,13 @@ var pendingImages  = []; // {url, source:'url'|'file'}
 
 var DEFAULT_CATS = ['Telefon','Tablet','Laptop','Aksesuar','Kulaklık','Saat','Tv & Ses Sistemi','Oyun','Diğer'];
 
+function getStorageRefs(path) {
+  var refs = [];
+  try { refs.push(storage.ref().child(path)); } catch(e) {}
+  try { refs.push(firebase.app().storage('gs://akif-iletisim-gercekci.firebasestorage.app').ref().child(path)); } catch(e) {}
+  return refs;
+}
+
 /* ── AUTH ── */
 auth.onAuthStateChanged(function(user) {
   if (user) {
@@ -232,28 +239,37 @@ async function uploadFiles(files) {
       bar.style.width = '30%';
 
       var fileName = 'products/' + Date.now() + '_' + i + '_' + Math.random().toString(36).slice(2,7) + '.jpg';
-      var storageRef = storage.ref().child(fileName);
+      var url = null;
+      var attempts = getStorageRefs(fileName);
+      var lastErr = null;
 
-      var uploadTask = storageRef.put(compressed, { contentType: 'image/jpeg' });
+      for (var r=0; r<attempts.length; r++) {
+        try {
+          var storageRef = attempts[r];
+          var uploadTask = storageRef.put(compressed, { contentType: 'image/jpeg' });
+          url = await new Promise(function(resolve, reject) {
+            uploadTask.on('state_changed',
+              function(snapshot) {
+                var pct = Math.round(30 + (snapshot.bytesTransferred / snapshot.totalBytes) * 60);
+                bar.style.width = pct + '%';
+                lbl.textContent = (i+1)+'/'+files.length+' yükleniyor… %' + Math.round(snapshot.bytesTransferred/snapshot.totalBytes*100);
+              },
+              function(error) { reject(error); },
+              async function() {
+                try {
+                  var downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+                  resolve(downloadURL);
+                } catch(e) { reject(e); }
+              }
+            );
+          });
+          if (url) break;
+        } catch(errBucket) {
+          lastErr = errBucket;
+        }
+      }
 
-      var url = await new Promise(function(resolve, reject) {
-        uploadTask.on('state_changed',
-          function(snapshot) {
-            var pct = Math.round(30 + (snapshot.bytesTransferred / snapshot.totalBytes) * 60);
-            bar.style.width = pct + '%';
-            lbl.textContent = (i+1)+'/'+files.length+' yükleniyor… %' + Math.round(snapshot.bytesTransferred/snapshot.totalBytes*100);
-          },
-          function(error) {
-            reject(error);
-          },
-          async function() {
-            try {
-              var downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
-              resolve(downloadURL);
-            } catch(e) { reject(e); }
-          }
-        );
-      });
+      if (!url) throw (lastErr || new Error('Görsel yüklenemedi.'));
 
       pendingImages.push({ url: url, source: 'file' });
       bar.style.width = '100%';
