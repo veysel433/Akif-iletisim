@@ -9,7 +9,7 @@ const firebaseConfig = {
   apiKey:            "AIzaSyA_qQBvQgAMON13EDSPTUNu58t0W4RD0FA",
   authDomain:        "akif-iletisim-gercekci.firebaseapp.com",
   projectId:         "akif-iletisim-gercekci",
-  storageBucket:     "akif-iletisim-gercekci.appspot.com",
+  storageBucket:     "akif-iletisim-gercekci.firebasestorage.app",
   messagingSenderId: "527995566381",
   appId:             "1:527995566381:web:9ef6f0e8c37acbec89fba4",
   measurementId:     "G-D9WD7K857R",
@@ -105,9 +105,10 @@ function buildCategoryOptions() {
 function updateSidebarCategories() {
   var list = document.getElementById('nav-cat-list');
   if (!list) return;
-  list.innerHTML = allCatNames().map(function(cat){
-    return '<div class="nav-cat-item" onclick="switchPanel(\'products\',document.querySelector(\'[data-panel=products]\')); filterByCategory2(\''+escJs(cat)+'\')">'+escHtml(cat)+'</div>';
-  }).join('');
+  list.innerHTML = '<div class="nav-section-label">Kategoriler</div>' +
+    allCatNames().map(function(cat){
+      return '<div class="nav-cat-item" onclick="switchPanel('products',document.querySelector('[data-panel=products]')); filterByCategory2(''+escJs(cat)+'')" title="'+escHtml(cat)+'">'+escHtml(cat)+'</div>';
+    }).join('');
 }
 function onCategoryChange(val) {
   if (val === '__new__') {
@@ -206,7 +207,6 @@ async function uploadFiles(files) {
   if (files.length + pendingImages.length > 8) {
     showToast('En fazla 8 görsel ekleyebilirsiniz.','error'); return;
   }
-
   if (!storage) {
     showToast('Firebase Storage bağlantısı yok. URL ile ekleyin.','error'); return;
   }
@@ -214,12 +214,24 @@ async function uploadFiles(files) {
   var progress = document.getElementById('upload-progress');
   var bar      = document.getElementById('progress-bar-fill');
   var lbl      = document.getElementById('progress-label');
+  progress.classList.remove('hidden');
   progress.style.display = 'block';
   bar.style.width = '5%';
+  var successCount = 0;
 
   for (var i=0; i<files.length; i++) {
     var file = files[i];
-    if (file.size > 20 * 1024 * 1024) { showToast(file.name + ' 20MB\'dan büyük, atlandı.','error'); continue; }
+    var isImage = (file.type && file.type.startsWith('image/')) || isHeicFile(file) ||
+                  /\.(jpe?g|png|gif|webp|bmp|tiff?|heic|heif|avif)$/i.test(file.name||'');
+    if (!isImage) { showToast((file.name||'Dosya') + ' görsel değil, atlandı.','error'); continue; }
+    if (file.size > 20 * 1024 * 1024) { showToast((file.name||'Dosya') + ' 20MB\'dan büyük, atlandı.','error'); continue; }
+
+    /* Anında önizleme için geçici blob URL */
+    var tempUrl = URL.createObjectURL(file);
+    var tempIdx = pendingImages.length;
+    pendingImages.push({ url: tempUrl, source: 'uploading', temp: true });
+    renderImagePreviews();
+
     try {
       lbl.textContent = (i+1)+'/'+files.length+' hazırlanıyor…';
       bar.style.width = '15%';
@@ -233,7 +245,6 @@ async function uploadFiles(files) {
 
       var fileName = 'products/' + Date.now() + '_' + i + '_' + Math.random().toString(36).slice(2,7) + '.jpg';
       var storageRef = storage.ref().child(fileName);
-
       var uploadTask = storageRef.put(compressed, { contentType: 'image/jpeg' });
 
       var url = await new Promise(function(resolve, reject) {
@@ -241,39 +252,41 @@ async function uploadFiles(files) {
           function(snapshot) {
             var pct = Math.round(30 + (snapshot.bytesTransferred / snapshot.totalBytes) * 60);
             bar.style.width = pct + '%';
-            lbl.textContent = (i+1)+'/'+files.length+' yükleniyor… %' + Math.round(snapshot.bytesTransferred/snapshot.totalBytes*100);
+            lbl.textContent = (i+1)+'/'+files.length+' → %' + Math.round(snapshot.bytesTransferred/snapshot.totalBytes*100);
           },
-          function(error) {
-            reject(error);
-          },
+          function(error) { reject(error); },
           async function() {
-            try {
-              var downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
-              resolve(downloadURL);
-            } catch(e) { reject(e); }
+            try { var dlUrl = await uploadTask.snapshot.ref.getDownloadURL(); resolve(dlUrl); }
+            catch(e) { reject(e); }
           }
         );
       });
 
-      pendingImages.push({ url: url, source: 'file' });
+      URL.revokeObjectURL(tempUrl);
+      pendingImages[tempIdx] = { url: url, source: 'file' };
+      successCount++;
       bar.style.width = '100%';
-      lbl.textContent = '✓ Yüklendi: ' + pendingImages.length + ' görsel';
+      lbl.textContent = '✓ ' + successCount + ' görsel yüklendi';
+      renderImagePreviews();
 
     } catch(err) {
       console.error('Upload error:', err);
-      if (err.code === 'storage/unauthorized' || err.message.includes('CORS') || err.message.includes('network')) {
-        showToast('Depolama izni hatası. Firebase Console\'dan Storage kurallarını kontrol edin.','error');
-      } else {
-        showToast('Yükleme hatası: ' + err.message, 'error');
-      }
+      pendingImages.splice(tempIdx, 1);
+      URL.revokeObjectURL(tempUrl);
+      renderImagePreviews();
+      var errMsg = 'Yükleme hatası.';
+      if (err.code === 'storage/unauthorized') errMsg = 'Firebase Storage izni yok. Kuralları kontrol edin.';
+      else if ((err.message||'').includes('CORS')) errMsg = 'Ağ/CORS hatası. Bağlantınızı kontrol edin.';
+      else if (err.message) errMsg = 'Hata: ' + err.message;
+      showToast(errMsg, 'error');
     }
   }
 
-  if (!pendingImages.length) {
-    showToast('Fotoğraf yüklenemedi. Depolama bağlantısı kontrol edildi, lütfen tekrar deneyin.','error');
-  }
-  setTimeout(function(){ progress.style.display='none'; }, 2500);
-  renderImagePreviews();
+  /* Input sıfırla — aynı fotoğraf tekrar seçilebilsin */
+  var fi = document.getElementById('file-input');
+  if (fi) fi.value = '';
+
+  setTimeout(function(){ progress.style.display='none'; progress.classList.add('hidden'); }, 2500);
 }
 
 function addUrlImage() {
@@ -309,7 +322,8 @@ function renderImagePreviews() {
     return;
   }
   container.innerHTML = pendingImages.map(function(img, i){
-    return '<div class="img-thumb-wrap">' +
+    var isUploading = img.source === 'uploading';
+    return '<div class="img-thumb-wrap'+(isUploading?' uploading':'')+'">' +
       '<img class="img-thumb" src="'+escHtml(img.url)+'" alt="" onerror="this.style.background=\'var(--surface-3)\'" />' +
       '<button type="button" class="img-thumb-remove" onclick="removeImage('+i+')" title="Kaldır"><i class="fa-solid fa-xmark"></i></button>' +
       (i===0 ? '<span class="img-thumb-badge">Ana</span>' : '') +
@@ -332,9 +346,18 @@ function switchPanel(id, navEl) {
   document.getElementById('page-title').textContent         = t[0];
   document.getElementById('breadcrumb-current').textContent = t[1];
   currentPanel = id;
-  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+  if (window.innerWidth <= 900) {
+    document.getElementById('sidebar').classList.remove('open');
+    var ov2 = document.getElementById('sidebar-overlay');
+    if (ov2) ov2.classList.remove('visible');
+  }
 }
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+function toggleSidebar() {
+  var sb = document.getElementById('sidebar');
+  var ov = document.getElementById('sidebar-overlay');
+  sb.classList.toggle('open');
+  if (ov) ov.classList.toggle('visible', sb.classList.contains('open'));
+}
 function refreshCurrentPanel() {
   if (currentPanel==='dashboard'){ loadDashboard(); loadProducts(); }
   if (currentPanel==='products')  loadProducts();
@@ -650,7 +673,9 @@ document.addEventListener('DOMContentLoaded', function(){
   if (pSale)  pSale.addEventListener('input', updateDiscountBadge);
 
   var fi = document.getElementById('file-input');
-  if (fi) fi.addEventListener('change', function(e){ handleFileSelect(e.target.files); });
+  if (fi) fi.addEventListener('change', function(e){ handleFileSelect(e.target.files); e.target.value=''; });
+  var fc = document.getElementById('file-input-camera');
+  if (fc) fc.addEventListener('change', function(e){ handleFileSelect(e.target.files); e.target.value=''; });
 
   var dz = document.getElementById('file-drop-zone');
   if (dz) {
