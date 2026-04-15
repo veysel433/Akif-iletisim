@@ -4,227 +4,879 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Panel — Akif İletişim</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <!-- SweetAlert2 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"/>
+
   <style>
-    :root{--bg:#0b0d12;--panel:#121722;--line:#252d3a;--text:#f1f4fb;--muted:#9ca7b8;--gold:#d7be73;--red:#f87171;--green:#34d399;--text-2:#9ca7b8;--text-3:#738095;--surface-3:#101521}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Poppins,sans-serif;line-height:1.45;background:radial-gradient(900px 500px at 0% -10%,rgba(215,190,115,.14),transparent 62%),radial-gradient(900px 500px at 100% -10%,rgba(88,114,181,.12),transparent 58%),var(--bg);color:var(--text)}
-    body::before{content:'';position:fixed;inset:-20% -10%;z-index:-1;background:conic-gradient(from 120deg at 35% 28%,rgba(215,190,115,.09),rgba(109,134,196,.05),rgba(215,190,115,.08));filter:blur(56px);animation:aurora 18s linear infinite}
-    @keyframes aurora{0%{transform:translateX(-3%) translateY(0)}50%{transform:translateX(3%) translateY(2%)}100%{transform:translateX(-3%) translateY(0)}}
-    .hidden{display:none!important}.app{display:flex;min-height:100vh}
-    .sidebar{width:250px;background:linear-gradient(180deg,#101521,#0d121c);border-right:1px solid var(--line);padding:16px;box-shadow:inset -1px 0 0 rgba(255,255,255,.02)}
-    .main{flex:1;min-width:0;padding:22px;max-width:calc(100vw - 250px)}
-    .top{display:flex;justify-content:space-between;gap:12px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)}
-    #page-title{margin:0;font-size:30px;line-height:1.08;letter-spacing:-.03em}
-    .nav-item{display:block;width:100%;padding:11px 13px;margin-bottom:8px;border:1px solid var(--line);background:#1b222c;color:var(--text);border-radius:10px;text-align:left;cursor:pointer;font-weight:600;transition:.2s}
-    .nav-item:hover{border-color:#3a4656;background:#1f2732}
-    .nav-item.active{border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,168,76,.12) inset}
-    .nav-cat-item{display:flex;align-items:center;gap:6px;margin-bottom:6px}
-    .nav-cat-link{flex:1;text-align:left;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#141b26;color:var(--text-2);font-size:12px;cursor:pointer}
-    .nav-cat-link:hover{color:var(--text);border-color:#344056}
-    .nav-cat-del{width:30px;height:30px;border-radius:8px;border:1px solid #5b2731;background:#301820;color:#fecaca;cursor:pointer}
-    .panel{display:none}.panel.active{display:block}
-    .card{background:linear-gradient(180deg,rgba(19,25,37,.96),rgba(17,22,32,.96));border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:0 10px 28px rgba(0,0,0,.26)}
-    input,textarea,select,button{font-family:inherit}
-    input,textarea,select{width:100%;padding:11px 12px;border-radius:10px;border:1px solid #2a3445;background:#171f2b;color:var(--text)}
-    input::placeholder,textarea::placeholder{color:#7f8ca0}
-    .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-    .btn{padding:9px 12px;border-radius:10px;border:1px solid #2a3445;background:#1a2230;color:var(--text);cursor:pointer}
-    .btn-primary{background:linear-gradient(135deg,var(--gold),#e9d38f);color:#111;border:none;font-weight:700;box-shadow:0 8px 24px rgba(215,190,115,.25)}
-    .btn-ghost{background:#121820}
-    .btn-danger{background:#3a1d23;border-color:#5b2731;color:#fecaca}.btn-xs{padding:6px 8px;font-size:12px}
-    .td-actions{display:flex;align-items:center;gap:8px}
-    .form-select{width:100%;padding:8px;border-radius:8px;border:1px solid var(--line);background:#0f141c;color:var(--text)}
-    .product-name-cell{display:flex;align-items:center;gap:10px}
-    .product-name-cell .name{font-weight:600}
-    .product-name-cell .cat{font-size:11px;color:var(--text-2)}
-    .product-thumb{width:42px;height:42px;object-fit:cover;border-radius:8px;border:1px solid var(--line);background:#0d1218}
-    .table-wrap{overflow:auto;border-radius:10px}
-    .table{width:100%;border-collapse:collapse;table-layout:auto}
-    .table th,.table td{padding:12px 10px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top}
-    .table th{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:#8b97ab;white-space:nowrap}
-    .table td{word-break:normal;line-height:1.45}
-    .table tbody tr:hover{background:rgba(255,255,255,.015)}
-    #panel-orders .table{min-width:980px}
-    #panel-products .table{min-width:760px}
-    .badge{padding:2px 8px;border-radius:999px;font-size:11px}.badge-amber{background:#3b3017;color:#fcd34d}.badge-gold{background:#3b3218;color:#f5d67a}.badge-green{background:#173925;color:#86efac}.badge-red{background:#3b1720;color:#fca5a5}
-    #auth-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:20}
-    .auth-card{width:min(520px,94vw);background:linear-gradient(180deg,#10141e,#0e131b);border:1px solid var(--line);border-radius:22px;padding:28px;box-shadow:0 30px 70px rgba(0,0,0,.45)}
-    .auth-card h3{font-size:clamp(28px,6vw,42px);line-height:1;letter-spacing:-.03em;margin:2px 0 20px}
-    #toast-container{position:fixed;right:14px;bottom:14px;display:flex;flex-direction:column;gap:8px;z-index:40}
-    .toast{background:#111923;border:1px solid var(--line);padding:9px 11px;border-radius:8px}
-    #confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:30}
-    #confirm-overlay.open{display:flex}
-    .modal{width:min(520px,94vw);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
-    .img-tab.active{border-color:var(--gold)}
-    .img-tab-content{display:none}.img-tab-content.active{display:block}
-    .img-preview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
-    .img-thumb-wrap{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d1218}
-    .img-thumb{width:100%;height:90px;object-fit:cover;display:block;background:#0d1218}
-    .img-thumb-remove{position:absolute;right:4px;top:4px;background:#0008;color:#fff;border:none;border-radius:999px;width:24px;height:24px}
-    .img-thumb-badge{position:absolute;left:6px;top:6px;background:#1f2d1f;color:#86efac;padding:2px 6px;border-radius:999px;font-size:10px}
-    .img-thumb-nav{position:absolute;bottom:6px;left:6px;right:6px;display:flex;justify-content:space-between}
-    .img-thumb-nav button{border:1px solid var(--line);background:#000a;color:#fff;border-radius:6px;padding:2px 6px;cursor:pointer}
-    .img-placeholder{min-height:90px;border:1px dashed var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--muted)}
-    .toggle-option{padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:#1b222c;color:var(--text);cursor:pointer}
-    .toggle-option.active-green{background:#173925;border-color:#2f855a;color:#86efac}
-    .toggle-option.active-red{background:#3b1720;border-color:#7f1d1d;color:#fecaca}
-    .toast{display:flex;align-items:center;gap:8px}
-    .toast-success{border-color:#28543e}
-    .toast-error{border-color:#6b2f3a}
-    .toast-info{border-color:#2a303a}
-    #file-drop-zone{border:1px dashed var(--line);padding:16px;border-radius:10px;text-align:center;color:var(--muted)}
-    #sidebar-toggle-main{display:none}
-    @media(max-width:900px){
-      .sidebar{
-        display:block;
-        position:fixed;
-        inset:0 auto 0 0;
-        width:250px;
-        transform:translateX(-106%);
-        transition:transform .25s ease;
-        z-index:35;
+    :root {
+      --bg:        #0c0f17;
+      --surface:   #131825;
+      --surface-2: #1a2133;
+      --surface-3: #1f2840;
+      --border:    #253044;
+      --border-2:  #2e3d56;
+      --text:      #e8edf6;
+      --text-2:    #8b9bb8;
+      --text-3:    #5a6e8a;
+      --gold:      #d4a853;
+      --gold-dim:  rgba(212,168,83,.15);
+      --gold-glow: rgba(212,168,83,.25);
+      --green:     #3ecf8e;
+      --red:       #f87171;
+      --blue:      #5b8ef0;
+      --sidebar-w: 260px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ═══════════ AUTH ═══════════ */
+    #auth-overlay {
+      position: fixed; inset: 0;
+      background: rgba(8,10,18,.92);
+      backdrop-filter: blur(12px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000;
+    }
+    .auth-box {
+      width: min(440px, 94vw);
+      background: linear-gradient(160deg, #141c2e, #0e1420);
+      border: 1px solid var(--border-2);
+      border-radius: 20px;
+      padding: 36px 32px;
+      box-shadow: 0 40px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.03);
+    }
+    .auth-brand {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 28px;
+    }
+    .auth-brand .logo-icon {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--gold), #e8c874);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; color: #111;
+    }
+    .auth-brand h1 {
+      margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -.02em;
+    }
+    .auth-brand span { font-size: 12px; color: var(--text-2); display: block; }
+
+    /* ═══════════ LAYOUT ═══════════ */
+    #app { display: none; }
+    .app-layout { display: flex; min-height: 100vh; }
+
+    /* ═══════════ SIDEBAR ═══════════ */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: linear-gradient(180deg, #111827 0%, #0d1420 100%);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0;
+      z-index: 100;
+      transition: transform .28s cubic-bezier(.4,0,.2,1);
+    }
+    .sidebar-header {
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand-row { display: flex; align-items: center; gap: 10px; }
+    .brand-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--gold), #e8c874);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: #111; flex-shrink: 0;
+    }
+    .brand-text { font-weight: 700; font-size: 15px; letter-spacing: -.02em; }
+    .brand-sub { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+    .admin-badge {
+      margin-top: 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .admin-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), #c49140);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: #111;
+      flex-shrink: 0;
+    }
+    .admin-info { min-width: 0; }
+    .admin-email { font-size: 11px; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .admin-role { font-size: 10px; color: var(--green); font-weight: 600; }
+
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 12px; }
+    .nav-section-label {
+      font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--text-3); font-weight: 600;
+      padding: 12px 8px 4px;
+    }
+    .nav-btn {
+      display: flex; align-items: center; gap: 10px;
+      width: 100%; padding: 10px 12px; margin-bottom: 2px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-2); font-family: inherit; font-size: 13px; font-weight: 500;
+      border-radius: 10px; cursor: pointer;
+      transition: all .18s;
+      text-align: left;
+    }
+    .nav-btn .nav-icon {
+      width: 30px; height: 30px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; background: var(--surface-2); flex-shrink: 0;
+      transition: all .18s;
+    }
+    .nav-btn:hover { color: var(--text); background: var(--surface-2); border-color: var(--border); }
+    .nav-btn.active {
+      color: var(--gold); background: var(--gold-dim); border-color: rgba(212,168,83,.3);
+    }
+    .nav-btn.active .nav-icon { background: rgba(212,168,83,.2); color: var(--gold); }
+    .nav-badge {
+      margin-left: auto; background: var(--surface-3); color: var(--text-3);
+      font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
+      font-family: 'DM Mono', monospace;
+    }
+    .nav-btn.active .nav-badge { background: rgba(212,168,83,.2); color: var(--gold); }
+
+    .cat-nav-item {
+      display: flex; align-items: center; gap: 6px; margin-bottom: 2px;
+    }
+    .cat-nav-btn {
+      flex: 1; display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; border-radius: 8px; border: 1px solid transparent;
+      background: transparent; color: var(--text-3);
+      font-family: inherit; font-size: 12px; cursor: pointer;
+      transition: all .18s; text-align: left;
+    }
+    .cat-nav-btn:hover { color: var(--text-2); background: var(--surface-2); border-color: var(--border); }
+    .cat-nav-del {
+      width: 28px; height: 28px; border-radius: 7px; flex-shrink: 0;
+      border: 1px solid #4a1e24; background: #2a1016; color: #fca5a5;
+      font-size: 11px; cursor: pointer; transition: all .18s;
+    }
+    .cat-nav-del:hover { background: #3d1520; border-color: #7f1d1d; }
+
+    .sidebar-footer {
+      padding: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .logout-btn {
+      display: flex; align-items: center; gap: 8px;
+      width: 100%; padding: 10px 12px;
+      border: 1px solid var(--border); border-radius: 10px;
+      background: transparent; color: var(--text-2);
+      font-family: inherit; font-size: 13px; cursor: pointer;
+      transition: all .18s;
+    }
+    .logout-btn:hover { color: var(--red); border-color: rgba(248,113,113,.3); background: rgba(248,113,113,.05); }
+
+    /* ═══════════ MAIN ═══════════ */
+    .main-content {
+      margin-left: var(--sidebar-w);
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column;
+    }
+
+    /* ═══════════ TOPBAR ═══════════ */
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(12,15,23,.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex; align-items: center; gap: 12px;
+      height: 60px;
+    }
+    #sidebar-toggle-btn {
+      display: none; width: 36px; height: 36px; border-radius: 9px;
+      border: 1px solid var(--border); background: var(--surface-2);
+      color: var(--text-2); font-size: 14px; cursor: pointer;
+      align-items: center; justify-content: center;
+    }
+    .topbar-title { font-size: 18px; font-weight: 700; letter-spacing: -.02em; }
+    .topbar-crumb { font-size: 12px; color: var(--text-3); margin-left: 2px; }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .topbar-search {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 6px 12px;
+    }
+    .topbar-search input {
+      background: transparent; border: none; outline: none;
+      color: var(--text); font-family: inherit; font-size: 13px; width: 180px;
+    }
+    .topbar-search input::placeholder { color: var(--text-3); }
+    .topbar-search i { color: var(--text-3); font-size: 12px; }
+
+    /* ═══════════ PAGE CONTENT ═══════════ */
+    .page-body { padding: 24px; flex: 1; }
+
+    /* ═══════════ PANELS ═══════════ */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ═══════════ STAT CARDS ═══════════ */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px; margin-bottom: 24px;
+    }
+    .stat-card {
+      background: linear-gradient(145deg, var(--surface), var(--surface-2));
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px;
+      position: relative; overflow: hidden;
+      transition: border-color .2s, transform .2s;
+    }
+    .stat-card:hover { border-color: var(--border-2); transform: translateY(-2px); }
+    .stat-card::before {
+      content: ''; position: absolute;
+      top: -30px; right: -30px; width: 90px; height: 90px;
+      border-radius: 50%; opacity: .08;
+    }
+    .stat-card.gold::before { background: var(--gold); }
+    .stat-card.green::before { background: var(--green); }
+    .stat-card.blue::before { background: var(--blue); }
+    .stat-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; margin-bottom: 12px;
+    }
+    .stat-card.gold .stat-icon { background: rgba(212,168,83,.15); color: var(--gold); }
+    .stat-card.green .stat-icon { background: rgba(62,207,142,.1); color: var(--green); }
+    .stat-card.blue .stat-icon { background: rgba(91,142,240,.1); color: var(--blue); }
+    .stat-num { font-size: 28px; font-weight: 700; letter-spacing: -.03em; line-height: 1; margin-bottom: 4px; font-family: 'DM Mono', monospace; }
+    .stat-label { font-size: 12px; color: var(--text-2); font-weight: 500; }
+
+    /* ═══════════ CARD ═══════════ */
+    .ak-card {
+      background: linear-gradient(145deg, var(--surface), rgba(19,24,37,.98));
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px;
+      margin-bottom: 16px;
+    }
+    .ak-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px; padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .ak-card-title {
+      font-size: 15px; font-weight: 700; letter-spacing: -.01em;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .ak-card-title i { color: var(--gold); font-size: 13px; }
+
+    /* ═══════════ FORM ═══════════ */
+    .form-group { margin-bottom: 14px; }
+    .form-label { font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 6px; display: block; letter-spacing: .02em; text-transform: uppercase; }
+    .form-control, .form-select {
+      width: 100%; padding: 10px 14px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      color: var(--text); border-radius: 10px; font-family: inherit; font-size: 13px;
+      outline: none; transition: border-color .18s, box-shadow .18s;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-dim);
+    }
+    .form-control::placeholder { color: var(--text-3); }
+    textarea.form-control { resize: vertical; min-height: 90px; }
+    .form-select option { background: var(--surface-2); }
+    .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+    /* ═══════════ BUTTONS ═══════════ */
+    .btn-ak {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 9px 16px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--surface-2); color: var(--text);
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all .18s; white-space: nowrap;
+    }
+    .btn-ak:hover { border-color: var(--border-2); background: var(--surface-3); color: var(--text); }
+    .btn-ak-primary {
+      background: linear-gradient(135deg, var(--gold), #c49140);
+      border-color: transparent; color: #111;
+      box-shadow: 0 4px 18px var(--gold-glow);
+    }
+    .btn-ak-primary:hover { opacity: .9; transform: translateY(-1px); color: #111; }
+    .btn-ak-danger {
+      background: rgba(248,113,113,.08); border-color: rgba(248,113,113,.25); color: var(--red);
+    }
+    .btn-ak-danger:hover { background: rgba(248,113,113,.15); border-color: rgba(248,113,113,.4); }
+    .btn-ak-success {
+      background: rgba(62,207,142,.08); border-color: rgba(62,207,142,.25); color: var(--green);
+    }
+    .btn-ak-sm { padding: 6px 10px; font-size: 12px; border-radius: 8px; }
+    .btn-ak-icon { padding: 6px 10px; border-radius: 8px; font-size: 13px; }
+
+    /* ═══════════ STOCK TOGGLE ═══════════ */
+    .stock-toggle { display: flex; gap: 8px; }
+    .toggle-opt {
+      flex: 1; padding: 9px 12px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--surface-2);
+      color: var(--text-2); font-family: inherit; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all .18s; text-align: center;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .toggle-opt.active-green { background: rgba(62,207,142,.1); border-color: rgba(62,207,142,.3); color: var(--green); }
+    .toggle-opt.active-red { background: rgba(248,113,113,.08); border-color: rgba(248,113,113,.25); color: var(--red); }
+
+    /* ═══════════ IMAGE UPLOAD ═══════════ */
+    .img-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+    .img-tab-btn {
+      padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--surface-2); color: var(--text-2);
+      font-family: inherit; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all .18s;
+    }
+    .img-tab-btn.active { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+    .img-tab-pane { display: none; }
+    .img-tab-pane.active { display: block; }
+
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px; padding: 28px 16px;
+      text-align: center; cursor: pointer;
+      transition: all .2s;
+      background: var(--surface-2);
+      position: relative;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--gold); background: var(--gold-dim);
+    }
+    .drop-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    }
+    .drop-zone-icon { font-size: 28px; color: var(--gold); margin-bottom: 8px; }
+    .drop-zone-text { font-size: 13px; color: var(--text-2); }
+    .drop-zone-hint { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+
+    .upload-progress {
+      margin-top: 12px; display: none;
+    }
+    .progress-track {
+      height: 6px; background: var(--surface-3);
+      border-radius: 999px; overflow: hidden; margin-top: 6px;
+    }
+    .progress-fill {
+      height: 100%; width: 0; border-radius: 999px;
+      background: linear-gradient(90deg, var(--gold), #e8c874);
+      transition: width .3s ease;
+    }
+    .progress-label { font-size: 12px; color: var(--text-2); }
+
+    .img-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 10px; margin-top: 12px;
+    }
+    .img-thumb-wrap {
+      position: relative; border-radius: 10px; overflow: hidden;
+      border: 1px solid var(--border); background: var(--surface-2);
+    }
+    .img-thumb { width: 100%; height: 90px; object-fit: cover; display: block; }
+    .img-thumb-overlay {
+      position: absolute; inset: 0; opacity: 0;
+      background: rgba(0,0,0,.6); transition: opacity .18s;
+      display: flex; align-items: center; justify-content: center; gap: 4px;
+    }
+    .img-thumb-wrap:hover .img-thumb-overlay { opacity: 1; }
+    .img-thumb-btn {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
+      color: #fff; font-size: 11px; cursor: pointer; display: flex;
+      align-items: center; justify-content: center; transition: .15s;
+    }
+    .img-thumb-btn:hover { background: rgba(255,255,255,.25); }
+    .img-thumb-btn.red { background: rgba(248,113,113,.25); }
+    .img-main-badge {
+      position: absolute; top: 5px; left: 5px;
+      background: linear-gradient(135deg, var(--gold), #c49140);
+      color: #111; font-size: 9px; font-weight: 800;
+      padding: 2px 7px; border-radius: 999px;
+    }
+    .img-placeholder {
+      min-height: 90px; border: 1px dashed var(--border); border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      color: var(--text-3); font-size: 13px; margin-top: 12px;
+    }
+
+    /* ═══════════ DISCOUNT PREVIEW ═══════════ */
+    .discount-strip {
+      display: flex; gap: 10px; margin-top: 10px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 14px; font-size: 13px;
+    }
+    .discount-strip span { color: var(--text-2); }
+    .discount-strip b { color: var(--gold); }
+
+    /* ═══════════ TABLE ═══════════ */
+    .table-wrap { overflow-x: auto; border-radius: 12px; }
+    .ak-table {
+      width: 100%; border-collapse: collapse;
+      min-width: 680px;
+    }
+    .ak-table th {
+      padding: 10px 14px; font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .1em;
+      color: var(--text-3); border-bottom: 1px solid var(--border);
+      white-space: nowrap; background: var(--surface-2);
+    }
+    .ak-table th:first-child { border-radius: 10px 0 0 0; }
+    .ak-table th:last-child { border-radius: 0 10px 0 0; }
+    .ak-table td {
+      padding: 12px 14px; font-size: 13px; vertical-align: middle;
+      border-bottom: 1px solid rgba(37,48,68,.6);
+    }
+    .ak-table tbody tr:hover td { background: rgba(255,255,255,.015); }
+    .ak-table tbody tr:last-child td { border-bottom: none; }
+
+    .product-cell { display: flex; align-items: center; gap: 12px; }
+    .product-thumb {
+      width: 44px; height: 44px; border-radius: 10px; object-fit: cover;
+      border: 1px solid var(--border); background: var(--surface-3); flex-shrink: 0;
+    }
+    .product-name { font-weight: 600; font-size: 13px; }
+    .product-cat { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+
+    .ak-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600;
+    }
+    .badge-gold { background: rgba(212,168,83,.15); color: var(--gold); }
+    .badge-green { background: rgba(62,207,142,.1); color: var(--green); }
+    .badge-red { background: rgba(248,113,113,.08); color: var(--red); }
+    .badge-blue { background: rgba(91,142,240,.1); color: var(--blue); }
+    .badge-amber { background: rgba(251,191,36,.1); color: #fbbf24; }
+
+    .actions { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
+
+    /* ═══════════ ORDERS TABLE ═══════════ */
+    #panel-orders .ak-table { min-width: 900px; }
+    .order-num { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 600; color: var(--text-2); }
+    .order-status-select {
+      background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+      font-family: inherit; font-size: 11px; border-radius: 8px; padding: 5px 8px; outline: none;
+      cursor: pointer;
+    }
+
+    /* ═══════════ FILTER ═══════════ */
+    .filter-bar {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .filter-bar .form-select { width: auto; min-width: 160px; padding: 7px 12px; }
+
+    /* ═══════════ TOAST ═══════════ */
+    #toast-container {
+      position: fixed; right: 16px; bottom: 16px;
+      display: flex; flex-direction: column-reverse; gap: 8px; z-index: 5000;
+    }
+    .toast-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 16px; border-radius: 12px; font-size: 13px; font-weight: 500;
+      border: 1px solid var(--border); background: var(--surface);
+      box-shadow: 0 8px 28px rgba(0,0,0,.4);
+      animation: toastIn .25s ease;
+    }
+    @keyframes toastIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform:translateX(0); } }
+    .toast-success { border-color: rgba(62,207,142,.3); }
+    .toast-success i { color: var(--green); }
+    .toast-error { border-color: rgba(248,113,113,.3); }
+    .toast-error i { color: var(--red); }
+    .toast-info i { color: var(--blue); }
+
+    /* ═══════════ NEW CAT ═══════════ */
+    .new-cat-row {
+      display: flex; gap: 8px; margin-top: 10px;
+    }
+    .new-cat-row .form-control { flex: 1; }
+
+    /* ═══════════ RESPONSIVE ═══════════ */
+    @media (max-width: 900px) {
+      .sidebar {
+        transform: translateX(-110%);
       }
-      .sidebar.open{transform:translateX(0)}
-      #sidebar-toggle-main{display:inline-flex;align-items:center;justify-content:center}
-      .main{max-width:none;padding:16px}
-      #page-title{font-size:24px}
-      .row{grid-template-columns:1fr}
+      .sidebar.open { transform: translateX(0); }
+      #sidebar-toggle-btn { display: flex; }
+      .main-content { margin-left: 0; }
+      .topbar { padding: 0 16px; }
+      .page-body { padding: 16px; }
+      .form-grid-2 { grid-template-columns: 1fr; }
+      .form-grid-3 { grid-template-columns: 1fr 1fr; }
+      .topbar-search { display: none; }
+    }
+    @media (max-width: 600px) {
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+      .form-grid-3 { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-  <div id="auth-overlay">
-    <div class="auth-card">
-      <h3>Admin Giriş</h3>
-      <div id="auth-error" class="hidden"><span id="auth-error-text"></span></div>
-      <div class="row" style="grid-template-columns:1fr;">
-        <input id="login-email" type="email" placeholder="E-posta" value="seyfullahkaratas51@gmail.com"/>
-        <div style="position:relative"><input id="login-password" type="password" placeholder="Şifre"/><button id="pw-eye" onclick="togglePw()" class="btn" style="position:absolute;right:4px;top:4px">👁</button></div>
-      </div>
-      <button id="login-btn" class="btn btn-primary" onclick="adminLogin()" style="margin-top:10px;width:100%">Giriş Yap</button>
-    </div>
-  </div>
 
-  <div id="app" class="app" style="display:none;">
+<!-- AUTH OVERLAY -->
+<div id="auth-overlay">
+  <div class="auth-box">
+    <div class="auth-brand">
+      <div class="logo-icon"><i class="fa-solid fa-bolt"></i></div>
+      <div>
+        <h1>Akif İletişim</h1>
+        <span>Admin Paneli</span>
+      </div>
+    </div>
+
+    <div id="auth-error" style="display:none; background:rgba(248,113,113,.08); border:1px solid rgba(248,113,113,.3); border-radius:10px; padding:10px 14px; margin-bottom:14px; font-size:13px; color:var(--red);">
+      <i class="fa-solid fa-circle-xmark"></i> <span id="auth-error-text"></span>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">E-posta</label>
+      <input id="login-email" type="email" class="form-control" placeholder="admin@example.com" value="seyfullahkaratas51@gmail.com"/>
+    </div>
+    <div class="form-group" style="position:relative;">
+      <label class="form-label">Şifre</label>
+      <input id="login-password" type="password" class="form-control" placeholder="••••••••"/>
+      <button onclick="togglePw()" style="position:absolute;right:10px;bottom:10px;background:none;border:none;color:var(--text-2);cursor:pointer;"><i id="pw-eye-icon" class="fa-regular fa-eye"></i></button>
+    </div>
+    <button id="login-btn" class="btn-ak btn-ak-primary" onclick="adminLogin()" style="width:100%;justify-content:center;margin-top:4px;">
+      <i class="fa-solid fa-right-to-bracket"></i> Giriş Yap
+    </button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="app-layout">
+
+    <!-- SIDEBAR -->
     <aside id="sidebar" class="sidebar">
-      <h3>Akif Admin</h3>
-      <div id="user-email-display" style="font-size:12px;color:var(--muted)"></div>
-      <div id="user-initial" class="hidden"></div>
-      <button id="sidebar-toggle" class="btn hidden">☰</button>
-      <button class="nav-item active" data-panel="dashboard" onclick="switchPanel('dashboard',this)">Dashboard</button>
-      <button class="nav-item" data-panel="add-product" onclick="switchPanel('add-product',this)">Ürün Ekle</button>
-      <button class="nav-item" data-panel="products" onclick="switchPanel('products',this)">Ürünler <span id="nav-product-count">0</span></button>
-      <button class="nav-item" data-panel="orders" onclick="switchPanel('orders',this)">Siparişler <span id="nav-order-count">0</span></button>
-      <div id="nav-cat-list"></div>
-      <button class="btn" onclick="adminLogout()">Çıkış</button>
+      <div class="sidebar-header">
+        <div class="brand-row">
+          <div class="brand-icon"><i class="fa-solid fa-bolt"></i></div>
+          <div>
+            <div class="brand-text">Akif Admin</div>
+            <div class="brand-sub">İletişim Yönetimi</div>
+          </div>
+        </div>
+        <div class="admin-badge" style="margin-top:12px;">
+          <div class="admin-avatar" id="user-initial">A</div>
+          <div class="admin-info">
+            <div class="admin-email" id="user-email-display">—</div>
+            <div class="admin-role"><i class="fa-solid fa-shield-check" style="font-size:9px;"></i> Admin</div>
+          </div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Ana Menü</div>
+        <button class="nav-btn active" data-panel="dashboard" onclick="switchPanel('dashboard',this)">
+          <span class="nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
+          Dashboard
+        </button>
+        <button class="nav-btn" data-panel="add-product" onclick="switchPanel('add-product',this)">
+          <span class="nav-icon"><i class="fa-solid fa-plus"></i></span>
+          Ürün Ekle
+        </button>
+        <button class="nav-btn" data-panel="products" onclick="switchPanel('products',this)">
+          <span class="nav-icon"><i class="fa-solid fa-box"></i></span>
+          Ürünler
+          <span class="nav-badge" id="nav-product-count">0</span>
+        </button>
+        <button class="nav-btn" data-panel="orders" onclick="switchPanel('orders',this)">
+          <span class="nav-icon"><i class="fa-solid fa-receipt"></i></span>
+          Siparişler
+          <span class="nav-badge" id="nav-order-count">0</span>
+        </button>
+
+        <div class="nav-section-label" style="margin-top:8px;">Kategoriler</div>
+        <div id="nav-cat-list"></div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="logout-btn" onclick="adminLogout()">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> Çıkış Yap
+        </button>
+      </div>
     </aside>
 
-    <main class="main">
-      <div class="top">
-        <div style="display:flex;align-items:center;gap:10px">
-          <button id="sidebar-toggle-main" class="btn" aria-label="Menüyü Aç/Kapat">☰</button>
-          <div>
-          <h2 id="page-title">Genel Bakış</h2>
-          <div id="breadcrumb-current" style="font-size:12px;color:var(--muted)">Dashboard</div>
+    <!-- MAIN -->
+    <div class="main-content">
+
+      <!-- TOPBAR -->
+      <div class="topbar">
+        <button id="sidebar-toggle-btn" onclick="toggleSidebar()">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div>
+          <div class="topbar-title" id="page-title">Dashboard</div>
+          <div class="topbar-crumb" id="breadcrumb-current">Genel Bakış</div>
+        </div>
+        <div class="topbar-right">
+          <div class="topbar-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input id="search-input" placeholder="Ürün ara…" oninput="filterProducts(this.value)"/>
           </div>
         </div>
       </div>
 
-      <section class="panel active" id="panel-dashboard">
-        <div class="row">
-          <div class="card">Ürün: <b id="stat-products">0</b></div>
-          <div class="card">Kampanya: <b id="stat-sale">0</b></div>
-          <div class="card">Sipariş: <b id="stat-orders">0</b></div>
-        </div>
-        <div class="card"><div class="table-wrap"><table class="table"><tbody id="recent-products-body"></tbody></table></div></div>
-      </section>
+      <!-- PAGE BODY -->
+      <div class="page-body">
 
-      <section class="panel" id="panel-add-product">
-        <div class="card">
-          <h3 id="form-panel-title">Ürün Ekle</h3>
-          <form id="product-form">
-            <input id="p-edit-id" type="hidden"/>
-            <div class="row">
-              <input id="p-name" placeholder="Ürün adı"/>
-              <select id="p-category" onchange="onCategoryChange(this.value)"></select>
+        <!-- DASHBOARD -->
+        <section class="panel active" id="panel-dashboard">
+          <div class="stat-grid">
+            <div class="stat-card gold">
+              <div class="stat-icon"><i class="fa-solid fa-box"></i></div>
+              <div class="stat-num" id="stat-products">0</div>
+              <div class="stat-label">Toplam Ürün</div>
             </div>
-            <div id="new-cat-wrap" class="hidden" style="margin-top:10px">
-              <div class="row"><input id="new-cat-input" placeholder="Yeni kategori"/><button class="btn" type="button" onclick="addCustomCategory()">Ekle</button></div>
+            <div class="stat-card blue">
+              <div class="stat-icon"><i class="fa-solid fa-tag"></i></div>
+              <div class="stat-num" id="stat-sale">0</div>
+              <div class="stat-label">Kampanyalı</div>
             </div>
-            <div class="row" style="margin-top:10px">
-              <input id="p-price" type="number" placeholder="Fiyat"/>
-              <input id="p-sale-price" type="number" placeholder="İndirimli fiyat"/>
+            <div class="stat-card green">
+              <div class="stat-icon"><i class="fa-solid fa-receipt"></i></div>
+              <div class="stat-num" id="stat-orders">0</div>
+              <div class="stat-label">Sipariş</div>
             </div>
-            <div class="row" style="margin-top:10px">
-              <input id="p-stock" type="number" placeholder="Stok"/>
-              <div id="stock-toggle"><button type="button" class="toggle-option" data-value="instock">Stokta</button></div>
-            </div>
-            <textarea id="p-desc" placeholder="Açıklama" style="margin-top:10px"></textarea>
-
-            <div style="margin-top:12px" class="card">
-              <div style="display:flex;gap:8px;margin-bottom:8px">
-                <button type="button" class="btn img-tab active" onclick="switchImgTab('file',this)">Dosya</button>
-                <button type="button" class="btn img-tab" onclick="switchImgTab('url',this)">URL</button>
-              </div>
-              <div id="tab-file" class="img-tab-content active">
-                <div id="file-drop-zone">Dosya sürükle-bırak veya seçin<input id="file-input" type="file" accept="image/*" multiple style="margin-top:8px"/></div>
-                <div id="upload-progress" class="hidden"><div id="progress-label"></div><div style="height:6px;background:#111;border:1px solid var(--line)"><div id="progress-bar-fill" style="height:100%;width:0;background:var(--gold)"></div></div></div>
-              </div>
-              <div id="tab-url" class="img-tab-content">
-                <div class="row"><input id="p-img-url-single" placeholder="https://..."/><button type="button" class="btn" onclick="addUrlImage()">URL Ekle</button></div>
-              </div>
-              <div id="img-preview-grid" class="img-preview-grid"></div>
-            </div>
-
-            <div class="row" style="margin-top:10px;grid-template-columns:1fr 1fr 1fr;">
-              <div>Eski Fiyat Önizleme: <span id="preview-old-price">—</span></div>
-              <div>İndirim Önizleme: <span id="preview-sale-price">—</span></div>
-              <div>Yüzde: <span id="preview-pct">—</span></div>
-            </div>
-            <button id="submit-product-btn" class="btn btn-primary" style="margin-top:12px"><span id="submit-btn-label">Kaydet</span></button>
-          </form>
-          <div id="discount-preview" class="hidden"></div>
-        </div>
-      </section>
-
-      <section class="panel" id="panel-products">
-        <div class="card"><select id="cat-filter-select" onchange="filterByCategory2(this.value)"></select></div>
-        <div class="card"><div class="table-wrap"><table class="table"><tbody id="products-body"></tbody></table></div></div>
-      </section>
-
-      <section class="panel" id="panel-orders">
-        <div class="card">
-          <div class="table-wrap">
-          <table class="table">
-            <thead><tr><th>Sipariş No</th><th>Müşteri</th><th>Ürünler</th><th>Toplam</th><th>Ödeme</th><th>Durum</th><th style="text-align:right">İşlem</th></tr></thead>
-            <tbody id="orders-body"></tbody>
-          </table>
           </div>
-        </div>
-      </section>
-    </main>
-  </div>
 
-  <div id="confirm-overlay">
-    <div class="modal">
-      <div id="confirm-icon"><i class="fa-solid fa-circle-question"></i></div>
-      <h3 id="confirm-title">Onay</h3>
-      <p id="confirm-desc"></p>
-      <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn" onclick="closeConfirm()">Vazgeç</button><button id="confirm-ok-btn" class="btn btn-primary">Tamam</button></div>
-    </div>
-  </div>
+          <div class="ak-card">
+            <div class="ak-card-header">
+              <div class="ak-card-title"><i class="fa-solid fa-clock-rotate-left"></i> Son Eklenen Ürünler</div>
+              <button class="btn-ak btn-ak-sm" onclick="switchPanel('products',document.querySelector('[data-panel=products]'))">
+                Tümünü Gör <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+            <div class="table-wrap">
+              <table class="ak-table">
+                <thead>
+                  <tr>
+                    <th>Ürün</th>
+                    <th>Kategori</th>
+                    <th>Fiyat</th>
+                    <th>Stok</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="recent-products-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
 
-  <div id="toast-container"></div>
+        <!-- ADD / EDIT PRODUCT -->
+        <section class="panel" id="panel-add-product">
+          <div class="ak-card">
+            <div class="ak-card-header">
+              <div class="ak-card-title" id="form-panel-title"><i class="fa-solid fa-plus"></i> Yeni Ürün Ekle</div>
+              <button class="btn-ak btn-ak-sm" onclick="resetProductForm()">
+                <i class="fa-solid fa-rotate-left"></i> Sıfırla
+              </button>
+            </div>
 
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/heic2any/dist/heic2any.min.js"></script>
-  <script src="admin.js"></script>
+            <form id="product-form">
+              <input type="hidden" id="p-edit-id"/>
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label">Ürün Adı *</label>
+                  <input id="p-name" class="form-control" placeholder="Örn: Samsung Galaxy S24"/>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Kategori *</label>
+                  <select id="p-category" class="form-select" onchange="onCategoryChange(this.value)"></select>
+                </div>
+              </div>
+
+              <div id="new-cat-wrap" style="display:none; margin-bottom:14px;">
+                <label class="form-label">Yeni Kategori Adı</label>
+                <div class="new-cat-row">
+                  <input id="new-cat-input" class="form-control" placeholder="Kategori adı girin…"/>
+                  <button class="btn-ak btn-ak-success" type="button" onclick="addCustomCategory()">
+                    <i class="fa-solid fa-check"></i> Ekle
+                  </button>
+                  <button class="btn-ak" type="button" onclick="cancelNewCategory()">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label">Normal Fiyat (₺) *</label>
+                  <input id="p-price" type="number" class="form-control" placeholder="0.00" oninput="updateDiscountBadge()"/>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">İndirimli Fiyat (₺)</label>
+                  <input id="p-sale-price" type="number" class="form-control" placeholder="Boş bırakın = indirim yok" oninput="updateDiscountBadge()"/>
+                </div>
+              </div>
+
+              <div id="discount-strip" class="discount-strip" style="display:none; margin-bottom:14px;">
+                <span>Eski: <b id="preview-old-price">—</b></span>
+                <span>İndirimli: <b id="preview-sale-price">—</b></span>
+                <span>Tasarruf: <b id="preview-pct">—</b></span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Stok Durumu</label>
+                <div class="stock-toggle">
+                  <button type="button" class="toggle-opt" data-value="instock" onclick="setStock('instock',this)">
+                    <i class="fa-solid fa-circle-check"></i> Stokta
+                  </button>
+                  <button type="button" class="toggle-opt" data-value="outofstock" onclick="setStock('outofstock',this)">
+                    <i class="fa-solid fa-ban"></i> Tükendi
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Açıklama *</label>
+                <textarea id="p-desc" class="form-control" placeholder="Ürün açıklaması…"></textarea>
+              </div>
+
+              <!-- IMAGE UPLOAD SECTION -->
+              <div class="form-group">
+                <label class="form-label">Ürün Görselleri (maks. 4)</label>
+                <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:14px;padding:16px;">
+                  <div class="img-tabs">
+                    <button type="button" class="img-tab-btn active" onclick="switchImgTab('file',this)">
+                      <i class="fa-solid fa-upload"></i> Dosya Yükle
+                    </button>
+                    <button type="button" class="img-tab-btn" onclick="switchImgTab('url',this)">
+                      <i class="fa-solid fa-link"></i> URL Ekle
+                    </button>
+                  </div>
+
+                  <div id="tab-file" class="img-tab-pane active">
+                    <div class="drop-zone" id="file-drop-zone">
+                      <input id="file-input" type="file" accept="image/*" multiple/>
+                      <div class="drop-zone-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                      <div class="drop-zone-text">Dosya sürükle-bırak veya tıklayın</div>
+                      <div class="drop-zone-hint">PNG, JPG, WEBP, HEIC — Maks 20MB</div>
+                    </div>
+                    <div class="upload-progress" id="upload-progress">
+                      <div class="progress-label" id="progress-label">Yükleniyor…</div>
+                      <div class="progress-track">
+                        <div class="progress-fill" id="progress-bar-fill"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div id="tab-url" class="img-tab-pane">
+                    <div style="display:flex;gap:8px;">
+                      <input id="p-img-url-single" class="form-control" placeholder="https://example.com/image.jpg"/>
+                      <button type="button" class="btn-ak btn-ak-success" onclick="addUrlImage()">
+                        <i class="fa-solid fa-plus"></i> Ekle
+                      </button>
+                    </div>
+                  </div>
+
+                  <div id="img-preview-grid" class="img-preview-grid"></div>
+                </div>
+              </div>
+
+              <button id="submit-product-btn" class="btn-ak btn-ak-primary" style="width:100%;justify-content:center;padding:12px;">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span id="submit-btn-label">Ürünü Kaydet</span>
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <!-- PRODUCTS LIST -->
+        <section class="panel" id="panel-products">
+          <div class="filter-bar">
+            <select id="cat-filter-select" class="form-select" onchange="filterByCategory2(this.value)"></select>
+            <span style="color:var(--text-3);font-size:12px;" id="product-count-label"></span>
+            <div style="margin-left:auto;">
+              <button class="btn-ak btn-ak-primary btn-ak-sm" onclick="switchPanel('add-product',document.querySelector('[data-panel=add-product]'));resetProductForm();">
+                <i class="fa-solid fa-plus"></i> Yeni Ürün
+              </button>
+            </div>
+          </div>
+          <div class="ak-card" style="padding:0;overflow:hidden;">
+            <div class="table-wrap">
+              <table class="ak-table">
+                <thead>
+                  <tr>
+                    <th>Ürün</th>
+                    <th>Kategori</th>
+                    <th>Fiyat</th>
+                    <th>İndirim</th>
+                    <th>Stok</th>
+                    <th style="text-align:right;">İşlemler</th>
+                  </tr>
+                </thead>
+                <tbody id="products-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ORDERS -->
+        <section class="panel" id="panel-orders">
+          <div class="ak-card" style="padding:0;overflow:hidden;">
+            <div class="table-wrap">
+              <table class="ak-table">
+                <thead>
+                  <tr>
+                    <th>Sipariş No</th>
+                    <th>Müşteri</th>
+                    <th>Ürün</th>
+                    <th>Toplam</th>
+                    <th>Tarih</th>
+                    <th>Durum</th>
+                    <th style="text-align:right;">İşlemler</th>
+                  </tr>
+                </thead>
+                <tbody id="orders-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div><!-- /page-body -->
+    </div><!-- /main-content -->
+  </div><!-- /app-layout -->
+</div><!-- /app -->
+
+<div id="toast-container"></div>
+
+<!-- Firebase compat -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<!-- heic2any -->
+<script src="https://cdn.jsdelivr.net/npm/heic2any/dist/heic2any.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Bootstrap 5 JS (bundle) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Admin JS -->
+<script src="admin.js"></script>
 </body>
 </html>
