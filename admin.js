@@ -18,7 +18,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth    = firebase.auth();
 const db      = firebase.firestore();
-const storage = firebase.storage();
 
 const WA_NUMBER = '905419705263'; // Admin WhatsApp (yedek)
 const ADMIN_EMAIL = 'seyfullahkaratas51@gmail.com';
@@ -32,13 +31,6 @@ var activeImgTab  = 'file';
 var pendingImages  = []; // {url, source:'url'|'file'}
 
 var DEFAULT_CATS = ['Telefon','Tablet','Laptop','Aksesuar','Kulaklık','Saat','Tv & Ses Sistemi','Oyun','Diğer'];
-
-function getStorageRefs(path) {
-  var refs = [];
-  try { refs.push(storage.ref().child(path)); } catch(e) {}
-  try { refs.push(firebase.app().storage('gs://akif-iletisim-gercekci.firebasestorage.app').ref().child(path)); } catch(e) {}
-  return refs;
-}
 
 /* ── AUTH ── */
 auth.onAuthStateChanged(function(user) {
@@ -262,12 +254,8 @@ function handleFileSelect(files) {
 }
 
 async function uploadFiles(files) {
-  if (files.length + pendingImages.length > 8) {
-    showToast('En fazla 8 görsel ekleyebilirsiniz.','error'); return;
-  }
-
-  if (!storage) {
-    showToast('Firebase Storage bağlantısı yok. URL ile ekleyin.','error'); return;
+  if (files.length + pendingImages.length > 4) {
+    showToast('En fazla 4 görsel ekleyebilirsiniz.','error'); return;
   }
 
   var progress = document.getElementById('upload-progress');
@@ -284,61 +272,26 @@ async function uploadFiles(files) {
       bar.style.width = '15%';
 
       var normalized = await prepareImageFile(file);
-      var quality = normalized.size > (8 * 1024 * 1024) ? 0.78 : 0.84;
-      var compressed = await compressImage(normalized, 1600, quality);
+      var quality = normalized.size > (8 * 1024 * 1024) ? 0.66 : 0.72;
+      var compressed = await compressImage(normalized, 1200, quality);
 
-      lbl.textContent = (i+1)+'/'+files.length+' yükleniyor…';
-      bar.style.width = '30%';
+      lbl.textContent = (i+1)+'/'+files.length+' URL\'e dönüştürülüyor…';
+      bar.style.width = '45%';
+      var url = await blobToDataURL(compressed);
 
-      var fileName = 'products/' + Date.now() + '_' + i + '_' + Math.random().toString(36).slice(2,7) + '.jpg';
-      var url = null;
-      var attempts = getStorageRefs(fileName);
-      var lastErr = null;
-
-      for (var r=0; r<attempts.length; r++) {
-        try {
-          var storageRef = attempts[r];
-          var uploadTask = storageRef.put(compressed, { contentType: 'image/jpeg' });
-          url = await new Promise(function(resolve, reject) {
-            uploadTask.on('state_changed',
-              function(snapshot) {
-                var pct = Math.round(30 + (snapshot.bytesTransferred / snapshot.totalBytes) * 60);
-                bar.style.width = pct + '%';
-                lbl.textContent = (i+1)+'/'+files.length+' yükleniyor… %' + Math.round(snapshot.bytesTransferred/snapshot.totalBytes*100);
-              },
-              function(error) { reject(error); },
-              async function() {
-                try {
-                  var downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
-                  resolve(downloadURL);
-                } catch(e) { reject(e); }
-              }
-            );
-          });
-          if (url) break;
-        } catch(errBucket) {
-          lastErr = errBucket;
-        }
+      // Çok uzun data url olursa ikinci kez daha düşük kalite ile sıkıştır
+      if (url.length > 380000) {
+        var tighter = await compressImage(normalized, 1000, 0.62);
+        url = await blobToDataURL(tighter);
       }
 
-      if (!url) {
-        // Storage başarısızsa dosyayı otomatik Data URL'e çevirip devam et
-        // (kullanıcının "dosya yükle -> otomatik url" beklentisi için fallback)
-        url = await blobToDataURL(compressed);
-        showToast('Bulut yükleme başarısız. Görsel otomatik URL olarak eklendi.','info');
-      }
-
-      pendingImages.push({ url: url, source: url.indexOf('data:') === 0 ? 'inline' : 'file' });
+      pendingImages.push({ url: url, source: 'inline' });
       bar.style.width = '100%';
-      lbl.textContent = '✓ Yüklendi: ' + pendingImages.length + ' görsel';
+      lbl.textContent = '✓ URL olarak eklendi: ' + pendingImages.length + ' görsel';
 
     } catch(err) {
       console.error('Upload error:', err);
-      if (err.code === 'storage/unauthorized' || err.message.includes('CORS') || err.message.includes('network')) {
-        showToast('Depolama izni hatası. Firebase Console\'dan Storage kurallarını kontrol edin.','error');
-      } else {
-        showToast('Yükleme hatası: ' + err.message, 'error');
-      }
+      showToast('Yükleme hatası: ' + err.message, 'error');
     }
   }
 
@@ -352,7 +305,7 @@ function addUrlImage() {
   var url   = (input.value||'').trim();
   if (!url) return;
   if (!url.startsWith('http')) { showToast('Geçerli bir URL girin (http ile başlamalı).','error'); return; }
-  if (pendingImages.length >= 8) { showToast('En fazla 8 görsel ekleyebilirsiniz.','error'); return; }
+  if (pendingImages.length >= 4) { showToast('En fazla 4 görsel ekleyebilirsiniz.','error'); return; }
   pendingImages.push({ url:url, source:'url' });
   input.value = '';
   renderImagePreviews();
